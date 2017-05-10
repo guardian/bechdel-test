@@ -3,13 +3,13 @@
 
 This extension scores a Guardian article, front or tag page by the merits of it's gender equality.
 
-#How to use
+# How to use
 
 1) Click on extension icon and turn the toggle on
 2) Reload the page. The Article Bechdel Test icon should appear in the lower right hand side of the screen.
 3) Click "Analyse this page"
 
-#Details:
+# Details:
 
 This is a Chrome extension written by Jonathan Rankin and Michael Ruane.
 
