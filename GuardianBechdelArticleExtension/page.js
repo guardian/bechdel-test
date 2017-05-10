@@ -18,10 +18,10 @@ function selectDistinct(a) {
 function getUrl(url) { 
   var urlPrefix  = 'https://content.guardianapis.com';
   var urlSuffix =   '?api-key=cbd423b9-1684-4d52-a9a1-33ea9fecf1bf&show-fields=all';
-  if(url.includes('guardian.')){
+  if(url.includes('theguardian.')){
     var matches = url.match(/:\/\/(?:www\.)?(.[^/]+)(.*)/);
     if(matches[2]){
-        var urlPath = matches[2];
+        var urlPath = matches[2].split('?')[0];
         if(urlPath.charAt(0) == '/') {
           return urlPrefix + urlPath + urlSuffix;
         } 
@@ -177,6 +177,12 @@ function showScoresArticle() {
 
 }
 
+function displayError() {
+  document.getElementById("overlay").style.display = "none";
+ document.getElementById('results').innerHTML = "There was an error. It may be that this article is not available on our public Content API due to sensistive content."
+
+}
+
 function displayResults() {
   document.getElementById("overlay").style.display = "none";
   var femaleMentions = aggregateScores.map(x => x.distinctFemales).reduce((acc, val) => acc + val, 0);
@@ -289,13 +295,17 @@ function loadTest(names) {
     fetch(urlPath).then(function(response) {
       console.log(response);
         return response.json();
-      }).then(function(json){
+      }).then(function(json) {
+        if(json.response.status === 'error'){
+            displayError();
+        } else {
           if(json.response.content){
               articleTest(null, json, names);
               displayResults(names);
           } else{
             showScoresFront(names);
           }
+        }
         });
 }
 
@@ -327,14 +337,14 @@ function addCheckButtonListener(checkPageButton){
 
 chrome.storage.sync.get("gu_bechdel_test", function(data){
     var url = window.location.toString();
-    
+     
     if(url.includes("guardian")){
       if (data["gu_bechdel_test"]){
           var imagescr = chrome.runtime.getURL("images/icon.png");
           var header = '<br><h2> Article Bechdel Test </h2>';
           var logo = '<div class="bechdel-bar"><span class="bechdel-bar__logo"><img src = "' + imagescr + '""></span></div>';
           var message = '<i> Working for articles, fronts, contributor pages and tag pages</i>';
-          var warning = '<br> <br> <p>Note: This may take a little while, especially on fronts. If the loader is stuck, try turning off your ad blocker and reloading the page</p></i>'
+          var warning = '<br> <br> <p>Note: Some articles with sensitive content do not work currently, as the server does not allow the application to pull the article from our Content API. This may take a little while, especially on fronts. If the loader is stuck, try turning off your ad blocker and reloading the page</p></i>'
           var info = '<div class="info-box"><div class="info-container"><div class = "bechdel-back"><a>Close</a></div></div><div id="results">' +  header + message +  '<button id="checkPage"><i>Analyse page</i></button>'
           + warning + '</div></div>';
           document.body.insertAdjacentHTML('beforeend', logo + info);
