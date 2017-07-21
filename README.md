@@ -1,7 +1,7 @@
 
 # guardian-article-bechdel-test
 
-This extension scores a Guardian article, front or tag page by the merits of it's gender equality.
+This extension scores a Guardian article, front or tag page by the merits of its gender equality.
 
 # Where to download
 https://chrome.google.com/webstore/detail/article-bechdel-test-beta/ddeoeeblkoelofnlobfphfdkiphlnfne
