@@ -31,9 +31,6 @@ function getUrl(url) {
   return urlPrefix;
 }
 
-var aggregateTotals = [];
-var aggregateScores = [];
-
 function getLength(value) {
   if(value){
     return value.length ? value.length : 0;
@@ -76,7 +73,44 @@ function getMetricScore(femaleCount, totalCount, pointsShare) {
   return Math.round((femaleCount/totalCount)*pointsShare);
 }
 
-function articleTest(element, json,names) {
+
+
+function displayResultsOnTopOfArticleElementOnFront (element, scores) {
+  var bylineText = scores.totalJournos > 0 ?'<a style="font-size: 12px">Female Journalists: '+ scores.femaleJournos + '/' + scores.totalJournos + '</a><br>' : '<a style="font-size: 12px">Gender of journalist(s) unknown </a><br>';
+  var nameText =  '<a style="font-size: 12px">Women mentioned: '+ scores.distinctFemales + '/' + scores.totalMentions + '</a><br>';
+  var pronounText =  '<a style="font-size: 12px">Female pronouns: '+ scores.femalePronouns + '/' + scores.totalPronouns + '</a><br>';
+  var toolTipText = bylineText + nameText + pronounText;                   
+  var bars = '<div class=\"w3-grey\"><div class=\" bechdel-color-bar ' + getColourClass(scores.femaleScore) + '\" style=\"width:' + scores.femaleScore + '%\">' + scores.femaleScore + '%' +
+  '</div>';
+  var tooltip = '<div class=\"bechdelTooltip\">' + bars + '<span class=\"bechdelTooltiptext\">'+ toolTipText + '</span></div>';
+  if(element){
+    org_html = element.innerHTML;
+    new_html = "<div'>" + org_html + "</div>" + tooltip;
+    element.innerHTML = new_html;
+  }
+}
+
+
+function getArticleScores(articleBreakdown) {
+    var scores = getTotalScores(articleBreakdown);
+    scores.totalScore = 100;
+    scores.femaleScore = scores.totalScore > 0 ? 
+      getMetricScore(scores.femaleJournos, scores.totalJournos, 30) 
+    + getMetricScore(scores.distinctFemales, scores.totalMentions, 40) 
+    + getMetricScore(scores.femalePronouns, scores.totalPronouns, 30) : 50;
+    return scores;
+}
+
+
+function getArticleComponentsFromCapiResponse(json) {
+  return {
+    headline: json.response.content.fields.headline ,
+    bylines: json.response.content.fields.byline,
+    bodyText: json.response.content.fields.bodyText
+  }
+}
+
+function getArticleComponentsBreakdown(articleComponents ,names) {
 
     var totals = {
       headline:'',
@@ -87,13 +121,12 @@ function articleTest(element, json,names) {
       malePronouns: [],
       femalePronouns: []
     }
-
     try{
-          var byLines = json.response.content.fields.byline.replace(' and ', ',').split(',');
-          var headLine = json.response.content.fields.headline;
+          var bylines = articleComponents.bylines.replace(' and ', ',').split(',');
+          var headLine = articleComponents.headline;
           totals.headline = headLine;
-          for(var i = 0; i < byLines.length; i++){
-            var journoMetadata = window.nlp(byLines[i], names).people().data();
+          for(var i = 0; i < bylines.length; i++){
+            var journoMetadata = window.nlp(bylines[i], names).people().data();
             journoMetadata.forEach(function(person){
                 if(person.firstName != person.lastName) {
                 var name = (person.firstName + ' ' + person.lastName).replace(regexPunctuationRemover, '');
@@ -107,7 +140,7 @@ function articleTest(element, json,names) {
             });
         }
 
-          var body=json.response.content.fields.bodyText;
+          var body = articleComponents.bodyText;
           var peopleMetadata = window.nlp(body, names).people().data();
           peopleMetadata.forEach(function(person){
               var nameTexts = person.text.replace(regexPunctuationRemover, '').split(' ');
@@ -129,43 +162,31 @@ function articleTest(element, json,names) {
               }
             }
           });
-
           totals.distinctMales = selectDistinct(totals.distinctMales);
           totals.distinctFemales = selectDistinct(totals.distinctFemales);
           totals.malePronouns = (body.toLowerCase().match(/( he )|( him )|( his )|( he\'s )|( he\'d )/g) || []);
           totals.femalePronouns = (body.toLowerCase().match(/( she )|( her )|( hers )| ( she\'s )|( she\'d )/g) || []);
-
-          var scores = getTotalScores(totals);
-
-          scores.totalScore = 100;
-          scores.femaleScore = scores.totalScore > 0 ? 
-              getMetricScore(scores.femaleJournos, scores.totalJournos, 30) 
-            + getMetricScore(scores.distinctFemales, scores.totalMentions, 40) 
-            + getMetricScore(scores.femalePronouns, scores.totalPronouns, 30) : 50;
-
-          var bylineText = scores.totalJournos > 0 ?'<a style="font-size: 12px">Female Journalists: '+ scores.femaleJournos + '/' + scores.totalJournos + '</a><br>' : '<a style="font-size: 12px">Gender of journalist(s) unknown </a><br>';
-          var nameText =  '<a style="font-size: 12px">Women mentioned: '+ scores.distinctFemales + '/' + scores.totalMentions + '</a><br>';
-          var pronounText =  '<a style="font-size: 12px">Female pronouns: '+ scores.femalePronouns + '/' + scores.totalPronouns + '</a><br>';
-          var toolTipText = bylineText + nameText + pronounText;
-                   
-                   
-
-          var bars = '<div class=\"w3-grey\"><div class=\" bechdel-color-bar ' + getColourClass(scores.femaleScore) + '\" style=\"width:' + scores.femaleScore + '%\">' + scores.femaleScore + '%' +
-          '</div>';
-          var tooltip = '<div class=\"bechdelTooltip\">' + bars + '<span class=\"bechdelTooltiptext\">'+ toolTipText + '</span></div>';
-          if(element){
-            org_html = element.innerHTML;
-            new_html = "<div'>" + org_html + "</div>" + tooltip;
-            element.innerHTML = new_html;
+          return totals;
+          } catch (e) {
+            console.log("error: " + e);
+            return null;
           }
-          aggregateTotals.push(totals);
-          aggregateScores.push(scores);
-      } catch (e) {
-          console.log("error: " + e);
-      }
 
   }
 
+function showScoresArticle() {
+ 
+        var urlPath = getUrlPath(tab.url);
+        fetch(urlPath).then(function(reponse) {
+          return response.json;
+        }).then(function(json){
+          articleTest(null,response);    
+        });
+
+}
+
+function displayResults() {
+function writeResultsToResultsBox(aggregateScores, aggregateBreakdowns) {
 function showScoresArticle() {
  
         var urlPath = getUrlPath(tab.url);
@@ -210,10 +231,10 @@ function displayResults() {
 
   var femaleMentionsText = '<br><h2>Named women:</h2>';
   var maleMentionsText = '<br><h2>Named men:</h2> ';
-  aggregateTotals.map(x => x.distinctFemales).filter(z => z != '').map(y => femaleMentionsText += y + ' , ');
-  aggregateTotals.map(x => x.distinctMales).filter(z => z != '').map(y => maleMentionsText += y + ' , ');
-  aggregateTotals.map(x => x.femaleJournos).filter(z => z != '').map(y => femaleJournosText += y + ' , ');
-  aggregateTotals.map(x => x.maleJournos).filter(z => z != '').map(y => maleJournosText += y + ' , ');
+  aggregateBreakdowns.map(x => x.distinctFemales).filter(z => z != '').map(y => femaleMentionsText += y + ' , ');
+  aggregateBreakdowns.map(x => x.distinctMales).filter(z => z != '').map(y => maleMentionsText += y + ' , ');
+  aggregateBreakdowns.map(x => x.femaleJournos).filter(z => z != '').map(y => femaleJournosText += y + ' , ');
+  aggregateBreakdowns.map(x => x.maleJournos).filter(z => z != '').map(y => maleJournosText += y + ' , ');
   
   var addNameButton = '<br><button style="margin-top:10px;" id="goToNamePage"><i>Name missing/wrong?</i></button>';
   var namesHtml = '<input id="bechdel-name" type="name" value="" placeholder="Enter name" class="name-entry-form" />' +
@@ -227,7 +248,7 @@ function displayResults() {
 
 
   document.getElementById('results').innerHTML = journosText + mentionsText + pronounsText + resultText + bars + '<br><br>' + femaleMentionsText.substring(0, femaleMentionsText.length - 2) + '<br><br>'+ maleMentionsText.substring(0, maleMentionsText.length - 2) + ' ' + femaleJournosText  + maleJournosText + addNameButton;
-  aggregateTotals = [];
+  aggregateBreakdowns = [];
   aggregateScores = [];
   var addNameButton = document.getElementById('goToNamePage');
   addNameButton.addEventListener('click', function() {
@@ -265,7 +286,7 @@ function displayResults() {
   }); 
 }
 
-function showScoresFront(names) {
+function runForFront(names) {
   try{
     var elements = document.getElementsByClassName('fc-item__container');
     var elementsArray = Array.prototype.slice.call(elements);
@@ -276,12 +297,20 @@ function showScoresFront(names) {
     });
     var jsonResponses = fetchResponses.then(function(responses) {
         Promise.all(responses).then(function(json){
-            
+            var aggregateScores = [];
+            var aggregateBreakdowns = [];
             for(var i = 0; i < elements.length; i++){ 
               console.log("about to process " + i);
-              articleTest(elements[i], json[i], names);
+              if(json[i].response.content){
+                var articleComponents = getArticleComponentsFromCapiResponse(json[i]);
+                var articleBreakdown = getArticleComponentsBreakdown(articleComponents, names);
+                var articleScores = getArticleScores(articleBreakdown);
+                aggregateBreakdowns.push(articleBreakdown);
+                aggregateScores.push(articleScores);
+                displayResultsOnTopOfArticleElementOnFront(elements[i], articleScores);
+              }
             }
-            displayResults();
+            writeResultsToResultsBox(aggregateScores, aggregateBreakdowns);
         })
     });
   } catch (e) {
@@ -289,21 +318,34 @@ function showScoresFront(names) {
   }
 }
 
-function loadTest(names) {
+function runForArticlePage(names, json) {
+    var articleComponents = getArticleComponentsFromCapiResponse(json);
+    var articleBreakdown = getArticleComponentsBreakdown(articleComponents, names);
+    var articleScore = getArticleScores(articleBreakdown);    
+    writeResultsToResultsBox([articleScore], [articleBreakdown]);
+}
+
+
+
+function run(names) {
   document.body.insertAdjacentHTML('beforeend','<div id="overlay"><div id="loader"></div></div>');
     var urlPath = getUrl(window.location.href);
     fetch(urlPath).then(function(response) {
       console.log(response);
         return response.json();
+      }).then(function(json){
+      }).then(function(json){
+          //This means that it is an article page
       }).then(function(json) {
         if(json.response.status === 'error'){
             displayError();
         } else {
           if(json.response.content){
-              articleTest(null, json, names);
-              displayResults(names);
-          } else{
-            showScoresFront(names);
+            runForArticlePage(names, json);
+          } 
+          //this means it is a front
+          else {
+            runForFront(names);
           }
         }
         });
@@ -330,7 +372,7 @@ function addCheckButtonListener(checkPageButton){
       fetch(namesJsonUrl).then(function(response){
         return response.json();
       }).then(function(names){
-        loadTest(names);
+        run(names);
       });
     });
 }
