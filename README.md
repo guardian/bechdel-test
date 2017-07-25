@@ -1,7 +1,7 @@
 
 # guardian-article-bechdel-test
 
-This extension scores a Guardian article, front or tag page by the merits of it's gender equality.
+This extension scores a Guardian article, front or tag page by the merits of its gender equality.
 
 # Where to download
 https://chrome.google.com/webstore/detail/article-bechdel-test-beta/ddeoeeblkoelofnlobfphfdkiphlnfne
@@ -29,7 +29,7 @@ female and male pronouns scores 50.
 
 When on a front, a bar with the score will be displayed, and you can hover over the bar to see the breakdown.
 
-The app uses Natural Language Processing to categories the names into Male and Female, and it is not perfect yet! This is firmly a BETA version, and if there are any issues that you spot, please let us know. 
+The app uses Natural Language Processing to categorise the names into Male and Female, and it is not perfect yet! This is firmly a BETA version, and if there are any issues that you spot, please let us know. 
 
 Queries and suggestions: 
 
