@@ -3,7 +3,7 @@
 
   "name": "Article Bechdel Test (BETA)",
   "description": "This extension scores a Guardian article by the merits of it's gender equality.",
-  "version": "2.1.3",
+  "version": "2.1.5",
   "content_security_policy": "script-src 'self' https://unpkg.com/compromise@7.0.9/builds/compromise.min.js; object-src 'self'",
   "browser_action": {
    "default_icon": "hackday-guardianicon-3.png",
