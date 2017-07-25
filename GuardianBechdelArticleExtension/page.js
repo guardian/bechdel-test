@@ -174,37 +174,13 @@ function getArticleComponentsBreakdown(articleComponents ,names) {
 
   }
 
-function showScoresArticle() {
- 
-        var urlPath = getUrlPath(tab.url);
-        fetch(urlPath).then(function(reponse) {
-          return response.json;
-        }).then(function(json){
-          articleTest(null,response);    
-        });
-
-}
-
-function displayResults() {
-function writeResultsToResultsBox(aggregateScores, aggregateBreakdowns) {
-function showScoresArticle() {
- 
-        var urlPath = getUrlPath(tab.url);
-        fetch(urlPath).then(function(reponse) {
-          return response.json;
-        }).then(function(json){
-          articleTest(null,response);    
-        });
-
-}
-
 function displayError() {
   document.getElementById("overlay").style.display = "none";
  document.getElementById('results').innerHTML = "There was an error. It may be that this article is not available on our public Content API due to sensistive content."
 
 }
 
-function displayResults() {
+function writeResultsToResultsBox(aggregateScores, aggregateBreakdowns) {
   document.getElementById("overlay").style.display = "none";
   var femaleMentions = aggregateScores.map(x => x.distinctFemales).reduce((acc, val) => acc + val, 0);
   var totalMentions = aggregateScores.map(x => x.totalMentions).reduce((acc, val) => acc + val, 0);
@@ -333,9 +309,6 @@ function run(names) {
     fetch(urlPath).then(function(response) {
       console.log(response);
         return response.json();
-      }).then(function(json){
-      }).then(function(json){
-          //This means that it is an article page
       }).then(function(json) {
         if(json.response.status === 'error'){
             displayError();
