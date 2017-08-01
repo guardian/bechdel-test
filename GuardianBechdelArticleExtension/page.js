@@ -103,14 +103,17 @@ function getArticleScores(articleBreakdown) {
 
 
 function getArticleComponentsFromCapiResponse(json) {
+
+  var bylines = json.response.content.fields.byline.replace(' and ', ',').split(',');
   return {
     headline: json.response.content.fields.headline ,
-    bylines: json.response.content.fields.byline,
+    bylines: bylines,
     bodyText: json.response.content.fields.bodyText
   }
 }
 
-function getArticleComponentsBreakdown(articleComponents ,names) {
+
+function getArticleComponentsBreakdown(articleComponents, names) {
 
     var totals = {
       headline:'',
@@ -122,9 +125,8 @@ function getArticleComponentsBreakdown(articleComponents ,names) {
       femalePronouns: []
     }
     try{
-          var bylines = articleComponents.bylines.replace(' and ', ',').split(',');
-          var headLine = articleComponents.headline;
-          totals.headline = headLine;
+          totals.headline = articleComponents.headline;
+          var bylines = articleComponents.bylines;
           for(var i = 0; i < bylines.length; i++){
             var journoMetadata = window.nlp(bylines[i], names).people().data();
             journoMetadata.forEach(function(person){
