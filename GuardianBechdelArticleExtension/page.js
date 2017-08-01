@@ -15,7 +15,7 @@ function selectDistinct(a) {
    return out;
 }
 
-function getUrl(url) { 
+function getUrl(url) {
   var urlPrefix  = 'https://content.guardianapis.com';
   var urlSuffix =   '?api-key=cbd423b9-1684-4d52-a9a1-33ea9fecf1bf&show-fields=all';
   if(url.includes('theguardian.')){
@@ -24,7 +24,7 @@ function getUrl(url) {
         var urlPath = matches[2].split('?')[0];
         if(urlPath.charAt(0) == '/') {
           return urlPrefix + urlPath + urlSuffix;
-        } 
+        }
     }
     return urlPrefix;
   }
@@ -79,7 +79,7 @@ function displayResultsOnTopOfArticleElementOnFront (element, scores) {
   var bylineText = scores.totalJournos > 0 ?'<a style="font-size: 12px">Female Journalists: '+ scores.femaleJournos + '/' + scores.totalJournos + '</a><br>' : '<a style="font-size: 12px">Gender of journalist(s) unknown </a><br>';
   var nameText =  '<a style="font-size: 12px">Women mentioned: '+ scores.distinctFemales + '/' + scores.totalMentions + '</a><br>';
   var pronounText =  '<a style="font-size: 12px">Female pronouns: '+ scores.femalePronouns + '/' + scores.totalPronouns + '</a><br>';
-  var toolTipText = bylineText + nameText + pronounText;                   
+  var toolTipText = bylineText + nameText + pronounText;
   var bars = '<div class=\"w3-grey\"><div class=\" bechdel-color-bar ' + getColourClass(scores.femaleScore) + '\" style=\"width:' + scores.femaleScore + '%\">' + scores.femaleScore + '%' +
   '</div>';
   var tooltip = '<div class=\"bechdelTooltip\">' + bars + '<span class=\"bechdelTooltiptext\">'+ toolTipText + '</span></div>';
@@ -94,16 +94,15 @@ function displayResultsOnTopOfArticleElementOnFront (element, scores) {
 function getArticleScores(articleBreakdown) {
     var scores = getTotalScores(articleBreakdown);
     scores.totalScore = 100;
-    scores.femaleScore = scores.totalScore > 0 ? 
-      getMetricScore(scores.femaleJournos, scores.totalJournos, 30) 
-    + getMetricScore(scores.distinctFemales, scores.totalMentions, 40) 
+    scores.femaleScore = scores.totalScore > 0 ?
+      getMetricScore(scores.femaleJournos, scores.totalJournos, 30)
+    + getMetricScore(scores.distinctFemales, scores.totalMentions, 40)
     + getMetricScore(scores.femalePronouns, scores.totalPronouns, 30) : 50;
     return scores;
 }
 
 
 function getArticleComponentsFromCapiResponse(json) {
-
   var bylines = json.response.content.fields.byline.replace(' and ', ',').split(',');
   return {
     headline: json.response.content.fields.headline ,
@@ -112,6 +111,17 @@ function getArticleComponentsFromCapiResponse(json) {
   }
 }
 
+function getArticleComponentsFromComposer() {
+  var bylines = [];
+  Array.from(document.getElementsByClassName("contributor")).forEach(function(name){bylines.push(name.innerText)});
+  var body = "";
+  Array.from(document.getElementsByClassName('body-text body-text--content body-text--')).forEach(function(text){body = " " + body + " " + text.innerText.replace(/[^a-zA-Z ]/g, " ")});
+  return {
+    headline: document.title.replace(" - composer|article", ""),
+    bylines: bylines,
+    bodyText: body
+  };
+}
 
 function getArticleComponentsBreakdown(articleComponents, names) {
 
@@ -203,7 +213,7 @@ function writeResultsToResultsBox(aggregateScores, aggregateBreakdowns) {
   var pronounsText = "<strong>Female pronouns: </strong>" + femalePronouns + "/" + totalPronouns + '<p>(' + Math.round(pronounsScore) + '/30 points)</p>';
   var resultText = "<strong>Overall Bechdel Score: </strong>";
   var scrollMessage = '<i>Scroll down for more details</i>';
-  var bars = '<div class=\"w3-grey\"><div class=\" bechdel-color-bar ' + getColourClass(femalePointsScore) + '\" style=\"width:' + femalePointsScore + '%\">' + femalePointsScore + '%</div></div><br>'+scrollMessage +'<br>'; 
+  var bars = '<div class=\"w3-grey\"><div class=\" bechdel-color-bar ' + getColourClass(femalePointsScore) + '\" style=\"width:' + femalePointsScore + '%\">' + femalePointsScore + '%</div></div><br>'+scrollMessage +'<br>';
   var femaleJournosText = '<br><h2>Female journalists:</h2>';
   var maleJournosText = '<br><h2>Male journalists:</h2>';
 
@@ -213,7 +223,7 @@ function writeResultsToResultsBox(aggregateScores, aggregateBreakdowns) {
   aggregateBreakdowns.map(x => x.distinctMales).filter(z => z != '').map(y => maleMentionsText += y + ' , ');
   aggregateBreakdowns.map(x => x.femaleJournos).filter(z => z != '').map(y => femaleJournosText += y + ' , ');
   aggregateBreakdowns.map(x => x.maleJournos).filter(z => z != '').map(y => maleJournosText += y + ' , ');
-  
+
   var addNameButton = '<br><button style="margin-top:10px;" id="goToNamePage"><i>Name missing/wrong?</i></button>';
   var namesHtml = '<input id="bechdel-name" type="name" value="" placeholder="Enter name" class="name-entry-form" />' +
     '<select id="bechdel-gender" type="gender">' +
@@ -255,13 +265,13 @@ function writeResultsToResultsBox(aggregateScores, aggregateBreakdowns) {
                     document.getElementById('results').innerHTML = '<a href="'+currentPageUrl+'"> Reload Page </a>';
                 })
              })
-            
+
 
           } else {
             alert("invalid input");
           }
-        });
-  }); 
+      });
+  });
 }
 
 function runForFront(names) {
@@ -277,7 +287,7 @@ function runForFront(names) {
         Promise.all(responses).then(function(json){
             var aggregateScores = [];
             var aggregateBreakdowns = [];
-            for(var i = 0; i < elements.length; i++){ 
+            for(var i = 0; i < elements.length; i++){
               console.log("about to process " + i);
               if(json[i].response.content){
                 var articleComponents = getArticleComponentsFromCapiResponse(json[i]);
@@ -299,31 +309,41 @@ function runForFront(names) {
 function runForArticlePage(names, json) {
     var articleComponents = getArticleComponentsFromCapiResponse(json);
     var articleBreakdown = getArticleComponentsBreakdown(articleComponents, names);
-    var articleScore = getArticleScores(articleBreakdown);    
+    var articleScore = getArticleScores(articleBreakdown);
     writeResultsToResultsBox([articleScore], [articleBreakdown]);
 }
 
-
+function runForComposerPage(names) {
+  var articleComponents = getArticleComponentsFromComposer();
+  var articleBreakdown = getArticleComponentsBreakdown(articleComponents, names);
+  var articleScore = getArticleScores(articleBreakdown);
+  writeResultsToResultsBox([articleScore], [articleBreakdown]);
+}
 
 function run(names) {
   document.body.insertAdjacentHTML('beforeend','<div id="overlay"><div id="loader"></div></div>');
-    var urlPath = getUrl(window.location.href);
-    fetch(urlPath).then(function(response) {
-      console.log(response);
-        return response.json();
-      }).then(function(json) {
-        if(json.response.status === 'error'){
-            displayError();
-        } else {
-          if(json.response.content){
-            runForArticlePage(names, json);
-          } 
-          //this means it is a front
-          else {
-            runForFront(names);
+    var pageUrl = window.location.href
+    if(pageUrl.includes("gutools.co.uk") && pageUrl.includes("composer")) {
+      runForComposerPage(names);
+    } else {
+      var urlPath = getUrl(pageUrl);
+      fetch(urlPath).then(function(response) {
+        console.log(response);
+          return response.json();
+        }).then(function(json) {
+          if(json.response.status === 'error'){
+              displayError();
+          } else {
+            if(json.response.content){
+              runForArticlePage(names, json);
+            }
+            //this means it is a front
+            else {
+              runForFront(names);
+            }
           }
-        }
-        });
+      });
+    }
 }
 
 
@@ -354,8 +374,8 @@ function addCheckButtonListener(checkPageButton){
 
 chrome.storage.sync.get("gu_bechdel_test", function(data){
     var url = window.location.toString();
-     
-    if(url.includes("guardian")){
+
+    if(url.includes("guardian") || (url.includes("gutools.co.uk") && url.includes("composer"))){
       if (data["gu_bechdel_test"]){
           var imagescr = chrome.runtime.getURL("images/icon.png");
           var header = '<br><h2> Article Bechdel Test </h2>';
@@ -374,16 +394,7 @@ chrome.storage.sync.get("gu_bechdel_test", function(data){
           addLogoListener(logoButton, infoBox);
           addCloseListener(closeButton, logoButton, infoBox);
           addCheckButtonListener(checkPageButton);
-           
+
       }
     }
 });
-
-
-    
-
-
-
-
-
-
