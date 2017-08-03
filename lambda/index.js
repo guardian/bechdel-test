@@ -11,7 +11,6 @@ var promises = urls.map(l => fetch(l));
 var fetchResponses = Promise.all(promises).then(function(responses) {
         return responses.map(r => r.json());
     });
-
 var jsonResponses = fetchResponses.then(function(responses) {
     Promise.all(responses).then(function(json){
     	var pathWithLinks = {};
@@ -19,15 +18,17 @@ var jsonResponses = fetchResponses.then(function(responses) {
     		pathWithLinks[paths[index]] = [];
     		element.collections.map((collection, containerIndex) => {
     			collection.content.map((content, contentIndex) => {
+    				//add 
     			 	pathWithLinks[paths[index]].push({
     			 		"link" : content.id,
     			 		"containerIndex" : containerIndex,
+    			 		"containerName" : collection.displayName,
     			 		"contentIndex" : contentIndex
     			 	});
     			});
     		});
     	}); 
-    	   	
+
     	console.log(pathWithLinks["/uk"])	;
     });
 });    
