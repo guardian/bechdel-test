@@ -54,7 +54,7 @@
     padding: 0px 5px;
 }
 
-.info-box {
+.bechdel-info-box {
     position: fixed;
     display:none;
     overflow:overlay;
@@ -132,7 +132,7 @@
 
 }
 
-#loader {
+#bechdel-loader {
   position: fixed;
   left: 50%;
   top: 50%;
@@ -178,7 +178,7 @@
   to{ bottom:0; opacity:1 }
 }
 
-#overlay{
+#bechdel-overlay{
   position:fixed;
   background:#000;
   opacity:.3;

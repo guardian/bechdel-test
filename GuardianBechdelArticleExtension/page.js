@@ -103,7 +103,7 @@ function getArticleScores(articleBreakdown) {
 
 
 function getArticleComponentsFromCapiResponse(json) {
-  var bylines = json.response.content.fields.byline.replace(' and ', ',').split(',');
+  var bylines = json.response.content.fields.byline ? json.response.content.fields.byline.replace(' and ', ',').split(',') : '';
   return {
     headline: json.response.content.fields.headline ,
     bylines: bylines,
@@ -187,13 +187,13 @@ function getArticleComponentsBreakdown(articleComponents, names) {
   }
 
 function displayError() {
-  document.getElementById("overlay").style.display = "none";
+  document.getElementById("bechdel-overlay").style.display = "none";
  document.getElementById('results').innerHTML = "There was an error. It may be that this article is not available on our public Content API due to sensistive content."
 
 }
 
 function writeResultsToResultsBox(aggregateScores, aggregateBreakdowns) {
-  document.getElementById("overlay").style.display = "none";
+  document.getElementById("bechdel-overlay").style.display = "none";
   var femaleMentions = aggregateScores.map(x => x.distinctFemales).reduce((acc, val) => acc + val, 0);
   var totalMentions = aggregateScores.map(x => x.totalMentions).reduce((acc, val) => acc + val, 0);
   var mentionsScore = getMetricScore(femaleMentions,totalMentions,40);
@@ -225,7 +225,7 @@ function writeResultsToResultsBox(aggregateScores, aggregateBreakdowns) {
   aggregateBreakdowns.map(x => x.maleJournos).filter(z => z != '').map(y => maleJournosText += y + ' , ');
 
   var addNameButton = '<br><button style="margin-top:10px;" id="goToNamePage"><i>Name missing/wrong?</i></button>';
-  var namesHtml = '<input id="bechdel-name" type="name" value="" placeholder="Enter name" class="name-entry-form" />' +
+  var namesHtml = '<input id="bechdel-name" type="name" value="" placeholder="Enter name" class="bechdel-name-entry-form" />' +
     '<select id="bechdel-gender" type="gender">' +
     '<option disabled selected value> -- select an option -- </option>' +
     '<option value="MaleName">male</option>'+
@@ -321,7 +321,7 @@ function runForComposerPage(names) {
 }
 
 function run(names) {
-  document.body.insertAdjacentHTML('beforeend','<div id="overlay"><div id="loader"></div></div>');
+  document.body.insertAdjacentHTML('beforeend','<div id="bechdel-overlay"><div id="bechdel-loader"></div></div>');
     var pageUrl = window.location.href
     if(pageUrl.includes("gutools.co.uk") && pageUrl.includes("composer")) {
       runForComposerPage(names);
@@ -382,11 +382,11 @@ chrome.storage.sync.get("gu_bechdel_test", function(data){
           var logo = '<div class="bechdel-bar"><span class="bechdel-bar__logo"><img src = "' + imagescr + '""></span></div>';
           var message = '<i> Working for articles, fronts, contributor pages and tag pages</i>';
           var warning = '<br> <br> <p>Note: Some articles with sensitive content do not work currently, as the server does not allow the application to pull the article from our Content API. This may take a little while, especially on fronts. If the loader is stuck, try turning off your ad blocker and reloading the page</p></i>'
-          var info = '<div class="info-box"><div class="info-container"><div class = "bechdel-back"><a>Close</a></div></div><div id="results">' +  header + message +  '<button id="checkPage"><i>Analyse page</i></button>'
+          var info = '<div class="bechdel-info-box"><div class="info-container"><div class = "bechdel-back"><a>Close</a></div></div><div id="results">' +  header + message +  '<button id="checkPage"><i>Analyse page</i></button>'
           + warning + '</div></div>';
           document.body.insertAdjacentHTML('beforeend', logo + info);
 
-          var infoBox = document.getElementsByClassName('info-box')[0];
+          var infoBox = document.getElementsByClassName('bechdel-info-box')[0];
           var logoButton = document.getElementsByClassName('bechdel-bar')[0];
           var closeButton = document.getElementsByClassName('bechdel-back')[0];
           var checkPageButton = document.getElementById('checkPage');
