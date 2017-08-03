@@ -375,7 +375,7 @@ function addCheckButtonListener(checkPageButton){
 chrome.storage.sync.get("gu_bechdel_test", function(data){
     var url = window.location.toString();
 
-    if(url.includes("guardian") || (url.includes("gutools.co.uk") && url.includes("composer"))){
+    if(url.includes("guardian") /*|| (url.includes("gutools.co.uk") && url.includes("composer"))*/){
       if (data["gu_bechdel_test"]){
           var imagescr = chrome.runtime.getURL("images/icon.png");
           var header = '<br><h2> Article Bechdel Test </h2>';
