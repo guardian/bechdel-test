@@ -4,7 +4,8 @@
   "description": "A lambda to poll the fronts of the guardian",
   "main": "index.js",
   "scripts": {
-    "test": "make test"
+    "test": "make test",
+    "riffraff-artefact": "./node_modules/.bin/riffraff-artefact"
   },
   "keywords": [
     "npm"
@@ -17,5 +18,12 @@
     "kew": "^0.7.0",
     "node-fetch": "^1.7.1",
     "require": "^2.4.20"
-  }
+  },
+  "devDependencies": {
+    "node-riffraff-artefact": "^2.0.1"
+  },
+  "isAwsLambda": true,
+  "cloudformation": false,
+  "projectName": "ophan::bechdel-test-front",
+  "riffraffFile": "./riff-raff.yml"
 }

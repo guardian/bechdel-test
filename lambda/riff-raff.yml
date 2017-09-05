@@ -1,0 +1,15 @@
+stacks:
+- ophan-bechdel-test
+regions:
+- eu-west-1
+deployments:
+  bechdel-test:
+    type: aws-lambda
+    parameters:
+      fileName: artifact.zip
+      bucket: ophan-dist
+      functions:
+        PROD:
+          name: bechdel-lambda-PROD
+          filename: artifact.zip
+
