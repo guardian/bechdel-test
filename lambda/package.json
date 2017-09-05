@@ -12,7 +12,9 @@
   "author": "Jonathan Rankin",
   "license": "ISC",
   "dependencies": {
+    "dynamodb-doc": "^1.0.0",
     "fetch": "^1.1.0",
+    "kew": "^0.7.0",
     "node-fetch": "^1.7.1",
     "require": "^2.4.20"
   }
