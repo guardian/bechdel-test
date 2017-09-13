@@ -1,6 +1,7 @@
 const doc = require('dynamodb-doc');
 const dynamo = new doc.DynamoDB();
 const Q = require('kew');
+const bechdelScore = require('gu-bechdel')
 
 function formUrls(paths) {
     return paths.map(x => "http://api.nextgen.guardianapps.co.uk" + x + "/lite.json");
@@ -24,7 +25,7 @@ exports.handler = function (event, context, callback) {
         );
         return defer.promise;
     }
-   
+    
     var fetch = require("node-fetch");
     var frontsPaths = require("./paths");
     var paths = frontsPaths.pathsList;
@@ -45,7 +46,8 @@ exports.handler = function (event, context, callback) {
                     element.collections.map((collection, containerIndex) => {
                         if(collection.content){
                             collection.content.map((content, contentIndex) => {
-                                //add         
+                               // bechdelScore.getArticleScoreFromPath(content.id).then(x => console.log(x));
+
                                 var linkData = {
                                     link : content.id,
                                     containerIndex : containerIndex,
