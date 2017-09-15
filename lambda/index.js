@@ -2,6 +2,7 @@ const doc = require('dynamodb-doc');
 const dynamo = new doc.DynamoDB();
 const Q = require('kew');
 const bechdelScore = require('gu-bechdel')
+const namesJsonUrl = 'https://s3-eu-west-1.amazonaws.com/bechdel-test-names/names.json'
 
 function formUrls(paths) {
     return paths.map(x => "http://api.nextgen.guardianapps.co.uk" + x + "/lite.json");
@@ -34,7 +35,11 @@ exports.handler = function (event, context, callback) {
     var fetchResponses = Promise.all(promises).then(function(responses) {
             return responses.map(r => r.json());
         });
-    var jsonResponses = fetchResponses.then(function(responses) {
+    
+    fetch(namesJsonUrl).then(function(response){
+      return response.json()
+    }).then(function(names){
+        fetchResponses.then(function(responses) {
         Promise.all(responses).then(function(json){
             var objects = json.map((element,index) => {
                 var item = {};
@@ -47,7 +52,7 @@ exports.handler = function (event, context, callback) {
                     element.collections.map((collection, containerIndex) => {
                         if(collection.content){
                             collection.content.map((content, contentIndex) => {
-                                bechdelScore.getArticleScoreFromPath(content.id).then(x => {
+                               // bechdelScore.getArticleScoreFromPath(content.id, names).then(x => {
                                     var breakdown = x.breakdown;
                                     var score = x.score;
                                     var linkData = {
@@ -55,21 +60,21 @@ exports.handler = function (event, context, callback) {
                                         containerIndex : containerIndex,
                                         containerName : collection.displayName,
                                         contentIndex : contentIndex,
-                                        breakdown: breakdown,
-                                        score: score
+                                    //    breakdown: breakdown,
+                                     //   score: score
                                     };
                                     item["links"].push(linkData);       
                                 });                                                 
                             });
                         }
-                    });
-    
+                   // });
+
                 }
                 putItem(item) 
                 .then(data => response(data, 200))
                 .fail(err => response(err, 500));
-            }); 
-                       
-        });
-    });   
+            });                       
+            });
+        });   
+    });
 } 
