@@ -42,19 +42,24 @@ exports.handler = function (event, context, callback) {
                 item["time"] = date.toString();
                 item["front"] = paths[index];
                 item["links"] = [];
+
                 if(element.collections){
                     element.collections.map((collection, containerIndex) => {
                         if(collection.content){
                             collection.content.map((content, contentIndex) => {
-                               // bechdelScore.getArticleScoreFromPath(content.id).then(x => console.log(x));
-
-                                var linkData = {
-                                    link : content.id,
-                                    containerIndex : containerIndex,
-                                    containerName : collection.displayName,
-                                    contentIndex : contentIndex
-                                };
-                                item["links"].push(linkData);                                                        
+                                bechdelScore.getArticleScoreFromPath(content.id).then(x => {
+                                    var breakdown = x.breakdown;
+                                    var score = x.score;
+                                    var linkData = {
+                                        link : content.id,
+                                        containerIndex : containerIndex,
+                                        containerName : collection.displayName,
+                                        contentIndex : contentIndex,
+                                        breakdown: breakdown,
+                                        score: score
+                                    };
+                                    item["links"].push(linkData);       
+                                });                                                 
                             });
                         }
                     });
