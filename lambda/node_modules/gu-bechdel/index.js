@@ -158,20 +158,16 @@ function getArticleComponentsFromCapiResponse(json) {
 }
 
 
-function getArticleScoreFromPath(path) {
-  return fetch(namesJsonUrl).then(function(response){
-      return response.json()
-    }).then(function(names){
-        return fetch(getCAPIUrlFromPath(path)).then(function(capiResponse){
-          return capiResponse.json();
-        }).then(function(capiJson){
-          var components = getArticleComponentsFromCapiResponse(capiJson);
-          var breakdown = getArticleComponentsBreakdown(components, names);
-          var score = getArticleScores(breakdown);
-          var result = {"breakdown": breakdown, "score": score};        
-          return result;
-        });
-    });
+function getArticleScoreFromPath(path, names) {
+  return fetch(getCAPIUrlFromPath(path)).then(function(capiResponse){
+    return capiResponse.json();
+  }).then(function(capiJson){
+    var components = getArticleComponentsFromCapiResponse(capiJson);
+    var breakdown = getArticleComponentsBreakdown(components, names);
+    var score = getArticleScores(breakdown);
+    var result = {"breakdown": breakdown, "score": score};        
+    return result;
+  });
 }
 
 
