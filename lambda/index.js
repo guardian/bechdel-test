@@ -1,8 +1,10 @@
 const doc = require('dynamodb-doc');
 const dynamo = new doc.DynamoDB();
 const Q = require('kew');
-const bechdelScore = require('gu-bechdel')
+const bechdelScore = require('gu-bechdel');
 const namesJsonUrl = 'https://s3-eu-west-1.amazonaws.com/bechdel-test-names/names.json'
+
+const capiKey = process.env.CAPI_KEY;
 
 function formUrls(paths) {
     return paths.map(x => "http://api.nextgen.guardianapps.co.uk" + x + "/lite.json");
@@ -18,15 +20,15 @@ exports.handler = function (event, context, callback) {
           TableName: 'bechdel-fronts',
           Item: json
         };
- 
+
 
         dynamo.putItem(
-            params, 
+            params,
             defer.makeNodeResolver()
         );
         return defer.promise;
     }
-    
+
     var fetch = require("node-fetch");
     var frontsPaths = require("./paths");
     var paths = frontsPaths.pathsList;
@@ -35,7 +37,7 @@ exports.handler = function (event, context, callback) {
     var fetchResponses = Promise.all(promises).then(function(responses) {
             return responses.map(r => r.json());
         });
-    
+
     fetch(namesJsonUrl).then(function(response){
       return response.json()
     }).then(function(names){
@@ -52,7 +54,7 @@ exports.handler = function (event, context, callback) {
                     element.collections.map((collection, containerIndex) => {
                         if(collection.content){
                             collection.content.map((content, contentIndex) => {
-                               // bechdelScore.getArticleScoreFromPath(content.id, names).then(x => {
+                                bechdelScore.getArticleScoreFromPath(content.id, names, capiKey).then(x => {
                                     var breakdown = x.breakdown;
                                     var score = x.score;
                                     var linkData = {
@@ -60,21 +62,21 @@ exports.handler = function (event, context, callback) {
                                         containerIndex : containerIndex,
                                         containerName : collection.displayName,
                                         contentIndex : contentIndex,
-                                    //    breakdown: breakdown,
-                                     //   score: score
+                                        breakdown: breakdown,
+                                        score: score
                                     };
-                                    item["links"].push(linkData);       
-                                });                                                 
+                                    item["links"].push(linkData);
+                                });
                             });
                         }
-                   // });
+                    });
 
                 }
-                putItem(item) 
+                putItem(item)
                 .then(data => response(data, 200))
                 .fail(err => response(err, 500));
-            });                       
             });
-        });   
+            });
+        });
     });
-} 
+}
