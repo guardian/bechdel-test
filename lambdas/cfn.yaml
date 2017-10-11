@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Editorial Production Metrics Lambdas
+
+Parameters:
+  Stage:
+    Description: Environment name
+    Type: String
+    AllowedValues:
+    - PROD
+    - CODE
+  Stack:
+    Description: Stack name
+    Type: String
+    AllowedValues:
+    - flexible
+    - flexible-secondary
+  App:
+    Description: App name
+    Type: String
+  PublishingMetricsKinesisStream:
+    Description: Kinesis stream for metrics
+    Type: String
+  FunctionName:
+    Description: Name of the lambda function
+    Type: String
+
+Resources:
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+      Policies:
+      # the VPC policy is explicity on the role here as it is needed as soon
+      # as the lambda is created. using an external policy creates a race
+      # condition
+       - PolicyName: logs
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: arn:aws:logs:*:*:*
+        - PolicyName: lambda
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: "*"
+
+
+  # Event rule that triggers the first lambda every 5 minutes
+  BatchOneLambdaRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: cron(0 1 * * ? *)
+      Targets:
+      - Id: BatchOneLambdaRule
+        Arn: !GetAtt [BatchOneLambda, Arn]
+
+  # Permission to allow the event rule to trigger the flexible querying lambda
+  InvokeBatchOneLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref BatchOneLambda
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt [BatchOneLambdaRule, Arn]
+
+  # Lambda that querys the flexible API
+  BatchOneLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: composer-dist
+        S3Key: !Sub '${Stack}/${Stage}/${App}/${App}.zip'
+      FunctionName: !Ref FunctionName
+      Handler: processFrontsLambda.CapiMetricsLambda::run
+      MemorySize: 512
+      Role: !GetAtt [LambdaRole, Arn]
+      Runtime: java8
+      Timeout: 300
+      VpcConfig:
+        SecurityGroupIds:
+          - Ref: LambdaSecurityGroup
+        SubnetIds: !Ref PrivateSubnets
+      Environment:
+        Variables:
+          Stage: !Ref Stage
