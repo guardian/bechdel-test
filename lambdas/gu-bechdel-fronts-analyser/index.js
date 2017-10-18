@@ -5,6 +5,7 @@ const bechdelScore = require('gu-bechdel');
 const namesJsonUrl = 'https://s3-eu-west-1.amazonaws.com/bechdel-test-names/names.json'
 
 const capiKey = process.env.CAPI_KEY;
+const paths = process.env.Paths;
 
 function formUrls(paths) {
     return paths.map(x => "http://api.nextgen.guardianapps.co.uk" + x + "/lite.json");
@@ -31,7 +32,6 @@ exports.handler = function (event, context, callback) {
 
     var fetch = require("node-fetch");
     var frontsPaths = require("./paths");
-    var paths = frontsPaths.pathsList;
     var urls = formUrls(paths);
     var promises = urls.map(l => fetch(l));
     var fetchResponses = Promise.all(promises).then(function(responses) {

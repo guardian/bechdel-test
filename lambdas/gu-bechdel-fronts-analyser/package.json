@@ -1,5 +1,5 @@
 {
-  "name": "bechdel-test-front",
+  "name": "gu-bechdel-fronts-analyser",
   "version": "1.0.0",
   "description": "A lambda to poll the fronts of the guardian",
   "main": "index.js",
