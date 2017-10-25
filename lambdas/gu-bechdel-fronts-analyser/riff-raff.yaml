@@ -1,0 +1,12 @@
+regions: [eu-west-1]
+stacks: [ophan]
+
+deployments:
+  gu-bechdel-fronts-analyser:
+    type: aws-lambda
+    parameters:
+      bucket: ophan-dist
+      prefixStack: false
+      fileName: gu-bechdel-fronts-analyser.zip
+      functionNames:
+       - "gu-bechdel-fronts-analyser-"

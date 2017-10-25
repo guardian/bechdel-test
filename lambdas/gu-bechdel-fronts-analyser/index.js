@@ -11,7 +11,7 @@ function formUrls(paths) {
     return paths.map(x => "http://api.nextgen.guardianapps.co.uk" + x + "/lite.json");
 }
 
-exports.handler = function (event, context, callback) {
+let index = function (event, context, callback) {
 
     function putItem(json) {
         const defer = Q.defer();
@@ -80,3 +80,5 @@ exports.handler = function (event, context, callback) {
         });
     });
 }
+
+exports.handler = index;
