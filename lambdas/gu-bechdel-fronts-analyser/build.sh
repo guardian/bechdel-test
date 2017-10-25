@@ -7,5 +7,9 @@ export NVM_DIR="$HOME/.nvm"
 
 nvm use ${NODE_VERSION}
 
+pushd lambdas/gu-bechdel-fronts-analyser
+
 npm install
 npm run riffraff-artefact
+
+popd
