@@ -9,7 +9,7 @@ templates:
       parameters:
         bucket: ophan-dist
         functionNames: [gu-bechdel-fronts-analyser-]
-        fileName: gu-bechdel-fronts-analyser.zip
+        fileName: gu-bechdel-fronts-analyser.tgz
         prefixStack: false
 
 
@@ -18,7 +18,7 @@ deployments:
     template: gu-bechdel-fronts-analyser
     actions: [uploadLambda]
   gu-bechdel-fronts-analyser-cfn:
-    contentDirectory: gu-bechdel-fronts-analyser
+    contentDirectory: gu-bechdel-fronts-analyser-cloudformation/cloudformation
     type: cloud-formation
     app: gu-bechdel-fronts-analyser
     parameters:
