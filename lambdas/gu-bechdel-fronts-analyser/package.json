@@ -10,6 +10,7 @@
   "keywords": [
     "npm"
   ],
+  "isAwsLambda": "true",
   "author": "Jonathan Rankin",
   "license": "ISC",
   "dependencies": {
