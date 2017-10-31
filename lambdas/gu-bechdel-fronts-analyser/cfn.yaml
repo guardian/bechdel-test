@@ -78,7 +78,7 @@ Resources:
       Code:
         S3Bucket: ophan-dist
         S3Key: !Sub '${Stack}/${Stage}/${App}/${App}.zip'
-      FunctionName: BechdelFrontsAnalyserBatchOne
+      FunctionName: !Sub ${App}-BatchOne-${Stage}
       Handler: gu-bechdel-fronts-analyser.index::handler
       MemorySize: 512
       Role: !GetAtt [LambdaRole, Arn]
