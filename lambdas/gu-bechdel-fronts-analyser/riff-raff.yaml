@@ -24,7 +24,7 @@ deployments:
     parameters:
       prependStackToCloudFormationStackName: false
       cloudFormationStackName: gu-bechdel-fronts-analyser
-      templatePath: cfn.yaml
+      templatePath: gu-bechdel-fronts-analyser-cloudformation/cloudformation/cfn.yaml
     dependencies: [gu-bechdel-fronts-analyser-lambda-upload]
   gu-bechdel-fronts-analyser-lambda-update:
     template: gu-bechdel-fronts-analyser
