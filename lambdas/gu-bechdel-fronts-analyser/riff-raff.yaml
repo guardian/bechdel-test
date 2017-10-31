@@ -1,12 +1,31 @@
 regions: [eu-west-1]
 stacks: [ophan]
 
+templates:
+    gu-bechdel-fronts-analyser:
+      type: aws-lambda
+      app: gu-bechdel-fronts-analyser
+      contentDirectory: gu-bechdel-fronts-analyser
+      parameters:
+        bucket: ophan-dist
+        functionNames: [gu-bechdel-fronts-analyser-]
+        fileName: gu-bechdel-fronts-analyser.zip
+        prefixStack: false
+
+
 deployments:
-  gu-bechdel-fronts-analyser:
-    type: aws-lambda
+  gu-bechdel-fronts-analyser-lambda-upload:
+    template: gu-bechdel-fronts-analyser
+    actions: [uploadLambda]
+  gu-bechdel-fronts-analyser-cfn:
+    type: cloud-formation
+    app: gu-bechdel-fronts-analyser
     parameters:
-      bucket: ophan-dist
-      prefixStack: false
-      fileName: gu-bechdel-fronts-analyser.zip
-      functionNames:
-       - "gu-bechdel-fronts-analyser-"
+      prependStackToCloudFormationStackName: false
+      cloudFormationStackName: gu-bechdel-fronts-analyser
+      templatePath: cfn.yaml
+    dependencies: [gu-bechdel-fronts-analyser-lambda-upload]
+  gu-bechdel-fronts-analyser-lambda-update:
+    template: gu-bechdel-fronts-analyser
+    actions: [updateLambda]
+    dependencies: [gu-bechdel-fronts-analyser-cfn]

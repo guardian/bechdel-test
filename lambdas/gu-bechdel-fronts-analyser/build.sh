@@ -11,5 +11,3 @@ pushd lambdas/gu-bechdel-fronts-analyser
 
 npm install
 npm run riffraff-artefact
-
-popd
