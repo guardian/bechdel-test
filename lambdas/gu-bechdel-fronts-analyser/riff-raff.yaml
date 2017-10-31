@@ -8,7 +8,7 @@ templates:
       contentDirectory: gu-bechdel-fronts-analyser
       parameters:
         bucket: ophan-dist
-        functionNames: [gu-bechdel-fronts-analyser-]
+        functionNames: [gu-bechdel-fronts-analyser-BatchOne-]
         fileName: gu-bechdel-fronts-analyser.zip
         prefixStack: false
 
@@ -18,13 +18,13 @@ deployments:
     template: gu-bechdel-fronts-analyser
     actions: [uploadLambda]
   gu-bechdel-fronts-analyser-cfn:
-    contentDirectory: gu-bechdel-fronts-analyser-cloudformation/cloudformation
+    contentDirectory: gu-bechdel-fronts-analyser-cloudformation
     type: cloud-formation
     app: gu-bechdel-fronts-analyser
     parameters:
       prependStackToCloudFormationStackName: false
       cloudFormationStackName: gu-bechdel-fronts-analyser
-      templatePath: gu-bechdel-fronts-analyser-cloudformation/cloudformation/cfn.yaml
+      templatePath: cloudformation/cfn.yaml
     dependencies: [gu-bechdel-fronts-analyser-lambda-upload]
   gu-bechdel-fronts-analyser-lambda-update:
     template: gu-bechdel-fronts-analyser
