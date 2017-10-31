@@ -18,6 +18,7 @@ deployments:
     template: gu-bechdel-fronts-analyser
     actions: [uploadLambda]
   gu-bechdel-fronts-analyser-cfn:
+    contentDirectory: gu-bechdel-fronts-analyser
     type: cloud-formation
     app: gu-bechdel-fronts-analyser
     parameters:
