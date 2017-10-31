@@ -77,7 +77,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: ophan-dist
-        S3Key: !Sub '${Stack}/${Stage}/${App}/${App}.tgz'
+        S3Key: !Sub '${Stack}/${Stage}/${App}/${App}.zip'
       FunctionName: BechdelFrontsAnalyserBatchOne
       Handler: gu-bechdel-fronts-analyser.index::handler
       MemorySize: 512
