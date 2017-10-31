@@ -9,7 +9,7 @@ templates:
       parameters:
         bucket: ophan-dist
         functionNames: [gu-bechdel-fronts-analyser-]
-        fileName: gu-bechdel-fronts-analyser.zip
+        fileName: gu-bechdel-fronts-analyser.tgz
         prefixStack: false
 
 
