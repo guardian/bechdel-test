@@ -79,7 +79,7 @@ Resources:
         S3Bucket: ophan-dist
         S3Key: !Sub '${Stack}/${Stage}/${App}/${App}.zip'
       FunctionName: !Sub ${App}-BatchOne-${Stage}
-      Handler: gu-bechdel-fronts-analyser.index::handler
+      Handler: index::handler
       MemorySize: 512
       Role: !GetAtt [LambdaRole, Arn]
       Runtime: nodejs6.10
