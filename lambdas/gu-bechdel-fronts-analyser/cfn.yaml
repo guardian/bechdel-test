@@ -20,7 +20,7 @@ Parameters:
     Description: App name
     Type: String
     Default: gu-bechdel-fronts-analyser
-  CAPI_KEY:
+  CapiKey:
     Description: Capi key
     Type: String
     Default: xxx
@@ -92,4 +92,4 @@ Resources:
         Variables:
           Stage: !Ref Stage
           Paths: !Ref BatchOnePaths
-          CAPI_KEY: !Ref CAPI_KEY
+          CapiKey: !Ref CapiKey

@@ -4,7 +4,7 @@ const Q = require('kew');
 const bechdelScore = require('gu-bechdel');
 const namesJsonUrl = 'https://s3-eu-west-1.amazonaws.com/bechdel-test-names/names.json'
 
-const capiKey = process.env.CAPI_KEY;
+const capiKey = process.env.CapiKey;
 const pathsString = process.env.Paths;
 
 function formUrls(paths) {
