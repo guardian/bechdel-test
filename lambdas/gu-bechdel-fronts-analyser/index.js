@@ -5,11 +5,10 @@ const bechdelScore = require('gu-bechdel');
 const namesJsonUrl = 'https://s3-eu-west-1.amazonaws.com/bechdel-test-names/names.json'
 
 const capiKey = process.env.CAPI_KEY;
-const paths = process.env.Paths;
+const pathsString = process.env.Paths;
 
 function formUrls(paths) {
-    const pathsArray = paths.split(",");
-    return pathsArray.map(x => "http://api.nextgen.guardianapps.co.uk" + x + "/lite.json");
+    return paths.map(x => "http://api.nextgen.guardianapps.co.uk" + x + "/lite.json");
 }
 
 exports.handler = function (event, context, callback) {
@@ -32,11 +31,14 @@ exports.handler = function (event, context, callback) {
 
     var fetch = require("node-fetch");
     var frontsPaths = require("./paths");
-    var urls = formUrls(paths);
+    const pathsArray = pathsString.split(",");
+
+    var urls = formUrls(pathsArray);
+    urls.forEach(x => console.log("url  = " + x));
     var promises = urls.map(l => fetch(l));
     var fetchResponses = Promise.all(promises).then(function(responses) {
-            return responses.map(r => r.json());
-        });
+        return responses.map(r => r.json());
+    });
 
     fetch(namesJsonUrl).then(function(response){
       return response.json()
@@ -47,14 +49,16 @@ exports.handler = function (event, context, callback) {
                 var item = {};
                 var date = new Date();
                 item["time"] = date.toString();
-                item["front"] = paths[index];
+                item["front"] = pathsArray[index];
                 item["links"] = [];
 
                 if(element.collections){
                     element.collections.map((collection, containerIndex) => {
                         if(collection.content){
                             collection.content.map((content, contentIndex) => {
+                              console.log("contentA: " + content);
                                 bechdelScore.getArticleScoreFromPath(content.id, names, capiKey).then(x => {
+                                  console.log("contentId: " + content.id);
                                     var breakdown = x.breakdown;
                                     var score = x.score;
                                     var linkData = {
@@ -72,6 +76,7 @@ exports.handler = function (event, context, callback) {
                     });
 
                 }
+                console.log("item: " + item["front"]);
                 putItem(item)
                 .then(data => response(data, 200))
                 .fail(err => response(err, 500));
