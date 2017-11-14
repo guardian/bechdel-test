@@ -56,9 +56,9 @@ exports.handler = function (event, context, callback) {
                     element.collections.map((collection, containerIndex) => {
                         if(collection.content){
                             collection.content.map((content, contentIndex) => {
-                              console.log("contentA: " + content);
+                              console.log("contentID: " + content.id);
+                              console.log(capiKey);
                                 bechdelScore.getArticleScoreFromPath(content.id, names, capiKey).then(x => {
-                                  console.log("contentId: " + content.id);
                                     var breakdown = x.breakdown;
                                     var score = x.score;
                                     var linkData = {

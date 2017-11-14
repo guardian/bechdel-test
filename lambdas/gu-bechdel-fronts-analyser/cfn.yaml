@@ -20,6 +20,10 @@ Parameters:
     Description: App name
     Type: String
     Default: gu-bechdel-fronts-analyser
+  CAPI_KEY:
+    Description: Capi key
+    Type: String
+    Default: xxx
 
 Resources:
   LambdaRole:
@@ -88,3 +92,4 @@ Resources:
         Variables:
           Stage: !Ref Stage
           Paths: !Ref BatchOnePaths
+          CAPI_KEY: !Ref CAPI_KEY
