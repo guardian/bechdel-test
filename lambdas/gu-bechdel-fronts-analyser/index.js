@@ -12,7 +12,7 @@ function formUrls(paths) {
 }
 
 exports.handler = function (event, context, callback) {
-
+    console.log(paths);
     function putItem(json) {
         const defer = Q.defer();
         var date = new Date();
