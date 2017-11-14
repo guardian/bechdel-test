@@ -8,11 +8,11 @@ const capiKey = process.env.CAPI_KEY;
 const paths = process.env.Paths;
 
 function formUrls(paths) {
-    return paths.map(x => "http://api.nextgen.guardianapps.co.uk" + x + "/lite.json");
+    const pathsArray = paths.split(",");
+    return pathsArray.map(x => "http://api.nextgen.guardianapps.co.uk" + x + "/lite.json");
 }
 
 exports.handler = function (event, context, callback) {
-
     function putItem(json) {
         const defer = Q.defer();
         var date = new Date();
