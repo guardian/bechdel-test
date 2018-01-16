@@ -42,7 +42,7 @@ function requestFrontsFromCAPI() {
 }
 
 function x() {
-    var fetchResponses = fetchFrontsAsJson();
+    var fetchResponses = requestFrontsFromCAPI();
 
     fetch(namesJsonUrl).then(function(response){
       return response.json()
