@@ -1,44 +1,48 @@
 const doc = require('dynamodb-doc');
-const dynamo = new doc.DynamoDB();
 const Q = require('kew');
 const bechdelScore = require('gu-bechdel');
+const fetch = require("node-fetch");
+
+const dynamo = new doc.DynamoDB();
 const namesJsonUrl = 'https://s3-eu-west-1.amazonaws.com/bechdel-test-names/names.json'
 
 const capiKey = process.env.CapiKey;
 const pathsString = process.env.Paths;
 
+const pathsArray = pathsString.split(",");
+var urls = formUrls(pathsArray);
+
 function formUrls(paths) {
     return paths.map(x => "http://api.nextgen.guardianapps.co.uk" + x + "/lite.json");
 }
 
-exports.handler = function (event, context, callback) {
-    function putItem(json) {
-        const defer = Q.defer();
-        var date = new Date();
-        const query = event.queryStringParameters;
-        const params = {
-          TableName: 'bechdel-fronts',
-          Item: json
-        };
+function putItem(json) {
+    const defer = Q.defer();
+    var date = new Date();
+    const query = event.queryStringParameters;
+    const params = {
+      TableName: 'bechdel-fronts',
+      Item: json
+    };
 
 
-        dynamo.putItem(
-            params,
-            defer.makeNodeResolver()
-        );
-        return defer.promise;
-    }
+    dynamo.putItem(
+        params,
+        defer.makeNodeResolver()
+    );
+    return defer.promise;
+}
 
-    var fetch = require("node-fetch");
-    var frontsPaths = require("./paths");
-    const pathsArray = pathsString.split(",");
-
-    var urls = formUrls(pathsArray);
-    urls.forEach(x => console.log("url  = " + x));
+function requestFrontsFromCAPI() {
     var promises = urls.map(l => fetch(l));
     var fetchResponses = Promise.all(promises).then(function(responses) {
         return responses.map(r => r.json());
     });
+    return fetchResponses; 
+}
+
+function x() {
+    var fetchResponses = fetchFrontsAsJson();
 
     fetch(namesJsonUrl).then(function(response){
       return response.json()
@@ -84,4 +88,9 @@ exports.handler = function (event, context, callback) {
             });
         });
     });
+}
+
+exports.handler = function (event, context, callback) {
+
+    x();
 }
