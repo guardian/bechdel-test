@@ -3,7 +3,7 @@ const Q = require('kew');
 const bechdelScore = require('gu-bechdel');
 const fetch = require("node-fetch");
 
-const dynamo = new doc.DynamoDB();
+const dynamo = new doc.DynamoDB({ region: 'eu-west-1' });
 const namesJsonUrl = 'https://s3-eu-west-1.amazonaws.com/bechdel-test-names/names.json'
 
 const capiKey = process.env.CapiKey;
@@ -18,14 +18,10 @@ function formUrls(paths) {
 
 function putItem(json) {
     const defer = Q.defer();
-    var date = new Date();
-    const query = event.queryStringParameters;
     const params = {
       TableName: 'bechdel-fronts',
       Item: json
     };
-
-
     dynamo.putItem(
         params,
         defer.makeNodeResolver()
@@ -38,7 +34,7 @@ function requestFrontsFromCAPI() {
     var fetchResponses = Promise.all(promises).then(function(responses) {
         return responses.map(r => r.json());
     });
-    return fetchResponses; 
+    return fetchResponses;
 }
 
 function x() {
@@ -82,8 +78,14 @@ function x() {
                 }
                 console.log("item: " + item["front"]);
                 putItem(item)
-                .then(data => response(data, 200))
-                .fail(err => response(err, 500));
+                .then(data => {
+                  console.log("success");
+                  response(data, 200)
+                })
+                .fail(err => {
+                  console.log(err);
+                  response(err, 500)
+                });
             });
             });
         });
@@ -91,6 +93,5 @@ function x() {
 }
 
 exports.handler = function (event, context, callback) {
-
     x();
 }
