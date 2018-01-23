@@ -20,7 +20,7 @@
     "node-riffraff-artefact": "^2.0.1",
     "node-fetch": "^1.7.1",
     "require": "^2.4.20",
-    "gu-bechdel": "^1.0.0"
+    "gu-bechdel": "^1.0.1"
   },
   "riffraffFile": "./riff-raff.yaml",
   "cloudformation": "./cfn.yaml"
