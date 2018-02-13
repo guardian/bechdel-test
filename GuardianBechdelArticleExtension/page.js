@@ -1,5 +1,9 @@
 var namesJsonUrl = 'https://s3-eu-west-1.amazonaws.com/bechdel-test-names/names.json'
 var regexPunctuationRemover = /[.,\/#!$%\^&\*;:{}=\-_`~()]/g;
+
+var top20 = "dashboard.ophan.co.uk/top20/email"
+var summary = "dashboard.ophan.co.uk/summary"
+
 function selectDistinct(a) {
    var seen = {};
    var out = [];
@@ -235,7 +239,7 @@ function writeResultsToResultsBox(aggregateScores, aggregateBreakdowns) {
     '<input type="submit" value="Submit" id="new-name-entry-form" id="fast"/>';
 
 
-  document.getElementById('results').innerHTML = journosText + mentionsText + pronounsText + resultText + bars + '<br><br>' + femaleMentionsText.substring(0, femaleMentionsText.length - 2) + '<br><br>'+ maleMentionsText.substring(0, maleMentionsText.length - 2) + ' ' + femaleJournosText  + maleJournosText + addNameButton;
+  document.getElementById('results').innerHTML = journosText + mentionsText + pronounsText + resultText + bars + '<br><br>' + femaleJournosText  + maleJournosText + femaleMentionsText.substring(0, femaleMentionsText.length - 2) + '<br><br>'+ maleMentionsText.substring(0, maleMentionsText.length - 2) + ' ' + addNameButton;
   aggregateBreakdowns = [];
   aggregateScores = [];
   var addNameButton = document.getElementById('goToNamePage');
@@ -274,11 +278,19 @@ function writeResultsToResultsBox(aggregateScores, aggregateBreakdowns) {
   });
 }
 
-function runForFront(names) {
+function runForSummary(names) {
   try{
-    var elements = document.getElementsByClassName('fc-item__container');
+    var elements = document.getElementsByTagName('a');
+    console.log(elements);
     var elementsArray = Array.prototype.slice.call(elements);
-    var links = elementsArray.map(e => getUrl(e.querySelectorAll('a')[0].href));
+    var filteredElements = elementsArray.filter(e => {
+      return e.href.startsWith("https://www.theguardian.com/") && e.parentElement.parentElement.parentElement.parentElement.parentElement.id === 'published';
+    });
+    console.log(filteredElements);
+    var links = filteredElements.map(e => {
+      return getUrl(e.href);
+    });
+    console.log(links);
     var promises = links.map(l => fetch(l));
     var fetchResponses = Promise.all(promises).then(function(responses) {
         return responses.map(r => r.json());
@@ -287,7 +299,73 @@ function runForFront(names) {
         Promise.all(responses).then(function(json){
             var aggregateScores = [];
             var aggregateBreakdowns = [];
-            for(var i = 0; i < elements.length; i++){
+            for(var i = 0; i < json.length; i++){
+              console.log("about to process " + i);
+              if(json[i].response.content){
+                var articleComponents = getArticleComponentsFromCapiResponse(json[i]);
+                var articleBreakdown = getArticleComponentsBreakdown(articleComponents, names);
+                var articleScores = getArticleScores(articleBreakdown);
+                aggregateBreakdowns.push(articleBreakdown);
+                aggregateScores.push(articleScores);
+                displayResultsOnTopOfArticleElementOnFront(filteredElements[i].parentElement, articleScores);
+              }
+            }
+            writeResultsToResultsBox(aggregateScores, aggregateBreakdowns);
+        })
+    });
+  } catch (e) {
+    console.log("Error: " + e);
+  }
+}
+
+
+function runForTop20(names) {
+  try{
+    var elements = document.getElementsByClassName('toplink');
+    var elementsArray = Array.prototype.slice.call(elements);
+    var links = elementsArray.map(e => getUrl(e.href));
+    var promises = links.map(l => fetch(l));
+    var fetchResponses = Promise.all(promises).then(function(responses) {
+        return responses.map(r => r.json());
+    });
+    var jsonResponses = fetchResponses.then(function(responses) {
+        Promise.all(responses).then(function(json){
+            var aggregateScores = [];
+            var aggregateBreakdowns = [];
+            for(var i = 0; i < json.length; i++){
+              console.log("about to process " + i);
+              if(json[i].response.content){
+                var articleComponents = getArticleComponentsFromCapiResponse(json[i]);
+                var articleBreakdown = getArticleComponentsBreakdown(articleComponents, names);
+                var articleScores = getArticleScores(articleBreakdown);
+                aggregateBreakdowns.push(articleBreakdown);
+                aggregateScores.push(articleScores);
+                displayResultsOnTopOfArticleElementOnFront(elements[i], articleScores);
+              }
+            }
+            writeResultsToResultsBox(aggregateScores, aggregateBreakdowns);
+        })
+    });
+  } catch (e) {
+    console.log("Error: " + e);
+  }
+}
+
+function runForFront(names) {
+  try{
+    var elements = document.getElementsByClassName('fc-item__container');
+    var elementsArray = Array.prototype.slice.call(elements);
+    var links = elementsArray.map(e => getUrl(e.querySelectorAll('a')[0].href));
+
+    var promises = links.map(l => fetch(l));
+    var fetchResponses = Promise.all(promises).then(function(responses) {
+        return responses.map(r => r.json());
+    });
+    var jsonResponses = fetchResponses.then(function(responses) {
+        Promise.all(responses).then(function(json){
+            var aggregateScores = [];
+            var aggregateBreakdowns = [];
+            for(var i = 0; i < json.length; i++){
               console.log("about to process " + i);
               if(json[i].response.content){
                 var articleComponents = getArticleComponentsFromCapiResponse(json[i]);
@@ -325,6 +403,10 @@ function run(names) {
     var pageUrl = window.location.href
     if(pageUrl.includes("gutools.co.uk") && pageUrl.includes("composer")) {
       runForComposerPage(names);
+    } else if (pageUrl.includes(top20) ) {
+      runForTop20(names);
+    } else if (pageUrl.includes(summary) ) {
+      runForSummary(names);
     } else {
       var urlPath = getUrl(pageUrl);
       fetch(urlPath).then(function(response) {
@@ -375,12 +457,12 @@ function addCheckButtonListener(checkPageButton){
 chrome.storage.sync.get("gu_bechdel_test", function(data){
     var url = window.location.toString();
 
-    if(url.includes("guardian") /*|| (url.includes("gutools.co.uk") && url.includes("composer"))*/){
+    if(url.includes("guardian") || url.includes(top20) || url.includes(summary) /*(url.includes("gutools.co.uk") && url.includes("composer"))*/){
       if (data["gu_bechdel_test"]){
           var imagescr = chrome.runtime.getURL("images/icon.png");
           var header = '<br><h2> Article Bechdel Test </h2>';
           var logo = '<div class="bechdel-bar"><span class="bechdel-bar__logo"><img src = "' + imagescr + '""></span></div>';
-          var message = '<i> Working for articles, fronts, contributor pages and tag pages</i>';
+          var message = '<i><strong>Main site</strong> - articles, fronts, contributor pages, tag pages.</i><br><i><strong>Ophan</strong> - top20 email page, \"what did we publish\" section of summary .</i><br>';
           var warning = '<br> <br> <p>Note: Some articles with sensitive content do not work currently, as the server does not allow the application to pull the article from our Content API. This may take a little while, especially on fronts. If the loader is stuck, try turning off your ad blocker and reloading the page</p></i>'
           var info = '<div class="bechdel-info-box"><div class="info-container"><div class = "bechdel-back"><a>Close</a></div></div><div id="results">' +  header + message +  '<button id="checkPage"><i>Analyse page</i></button>'
           + warning + '</div></div>';
