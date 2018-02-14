@@ -98,11 +98,15 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: "bechdel-config-bucket"
+      Tags:
+        -
+          Key: "Owner"
+          Value: "Jonathan Rankin"
 
   BechdelBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref BechdelBucket
+      Bucket: !Ref BechdelConfigBucket
       PolicyDocument:
         Statement:
           -
@@ -114,5 +118,5 @@ Resources:
               - Fn::Join: ["", ["arn:aws:s3:::", {Ref: BechdelConfigBucket}]]
               - Fn::Join: ["", ["arn:aws:s3:::", {Ref: BechdelConfigBucket}, "/*"]]
             Condition:
-              IpAdress:
+              IpAddress:
                 aws:sourceIp: "77.91.248.0/21"
