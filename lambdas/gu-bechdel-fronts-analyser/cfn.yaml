@@ -93,3 +93,30 @@ Resources:
           Stage: !Ref Stage
           Paths: !Ref BatchOnePaths
           CapiKey: !Ref CapiKey
+
+  BechdelConfigBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "bechdel-config-bucket"
+      Tags:
+        -
+          Key: "Owner"
+          Value: "Jonathan Rankin"
+
+  BechdelBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref BechdelConfigBucket
+      PolicyDocument:
+        Statement:
+          -
+            Sid: Access-to-Guardian-Office-Only
+            Principal: "*"
+            Action: "s3:*"
+            Effect: Allow
+            Resource:
+              - Fn::Join: ["", ["arn:aws:s3:::", {Ref: BechdelConfigBucket}]]
+              - Fn::Join: ["", ["arn:aws:s3:::", {Ref: BechdelConfigBucket}, "/*"]]
+            Condition:
+              IpAddress:
+                aws:sourceIp: "77.91.248.0/21"
