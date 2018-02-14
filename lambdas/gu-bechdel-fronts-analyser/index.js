@@ -1,9 +1,7 @@
-const doc = require('dynamodb-doc');
+const AWS = require("aws-sdk")
 const Q = require('kew');
 const bechdelScore = require('gu-bechdel');
 const fetch = require("node-fetch");
-
-const dynamo = new doc.DynamoDB({ region: 'eu-west-1' });
 const namesJsonUrl = 'https://s3-eu-west-1.amazonaws.com/bechdel-test-names/names.json'
 
 const capiKey = process.env.CapiKey;
@@ -17,17 +15,19 @@ function formUrls(paths) {
 }
 
 function putItem(json) {
-    const defer = Q.defer();
-    const params = {
-      TableName: 'bechdel-fronts',
-      Item: json
-    };
-    dynamo.putItem(
-        params,
-        defer.makeNodeResolver()
-    );
-    return defer.promise;
-}
+      const dynamo = new AWS.DynamoDB()
+       const defer = Q.defer();
+       var date = new Date();
+       const params = {
+         TableName: 'bechdel-fronts',
+         Item: json
+       };
+       dynamo.putItem(
+           params,
+           defer.makeNodeResolver()
+       );
+       return defer.promise;
+   }
 
 function requestFrontsFromCAPI() {
     var promises = urls.map(l => fetch(l));
@@ -83,6 +83,7 @@ function x() {
                   response(data, 200)
                 })
                 .fail(err => {
+                  console.log("fail");
                   console.log(err);
                   response(err, 500)
                 });
@@ -95,3 +96,5 @@ function x() {
 exports.handler = function (event, context, callback) {
     x();
 }
+
+x();

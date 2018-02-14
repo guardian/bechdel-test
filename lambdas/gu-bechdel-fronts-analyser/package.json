@@ -14,6 +14,7 @@
   "author": "Jonathan Rankin",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.188.0",
     "dynamodb-doc": "^1.0.0",
     "fetch": "^1.1.0",
     "gu-bechdel": "^1.0.4",
