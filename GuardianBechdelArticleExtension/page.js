@@ -1,5 +1,9 @@
 var namesJsonUrl = 'https://s3-eu-west-1.amazonaws.com/bechdel-test-names/names.json'
+var configUrl = 'https://s3-eu-west-1.amazonaws.com/bechdel-config-bucket/api-key.json'
 var regexPunctuationRemover = /[.,\/#!$%\^&\*;:{}=\-_`~()]/g;
+
+var APIerror = "There was an error. It may be that this article is not available on our public Content API due to sensistive content.";
+var APIKeyerror = "There was an error. Please note this app does not work if you are not connected to the GNM network.";
 
 var top20 = "dashboard.ophan.co.uk/top20/email"
 var summary = "dashboard.ophan.co.uk/summary"
@@ -19,9 +23,10 @@ function selectDistinct(a) {
    return out;
 }
 
-function getUrl(url) {
+function getUrl(url, apiKey) {
+  console.log(apiKey);
   var urlPrefix  = 'https://content.guardianapis.com';
-  var urlSuffix =   '?api-key=cbd423b9-1684-4d52-a9a1-33ea9fecf1bf&show-fields=all';
+  var urlSuffix =   '?api-key=' + apiKey + '&show-fields=all';
   if(url.includes('theguardian.')){
     var matches = url.match(/:\/\/(?:www\.)?(.[^/]+)(.*)/);
     if(matches[2]){
@@ -190,9 +195,9 @@ function getArticleComponentsBreakdown(articleComponents, names) {
 
   }
 
-function displayError() {
+function displayError(message) {
   document.getElementById("bechdel-overlay").style.display = "none";
- document.getElementById('results').innerHTML = "There was an error. It may be that this article is not available on our public Content API due to sensistive content."
+  document.getElementById('results').innerHTML = message;
 
 }
 
@@ -278,7 +283,7 @@ function writeResultsToResultsBox(aggregateScores, aggregateBreakdowns) {
   });
 }
 
-function runForSummary(names) {
+function runForSummary(names, apiKey) {
   try{
     var elements = document.getElementsByTagName('a');
     console.log(elements);
@@ -288,7 +293,7 @@ function runForSummary(names) {
     });
     console.log(filteredElements);
     var links = filteredElements.map(e => {
-      return getUrl(e.href);
+      return getUrl(e.href, apiKey);
     });
     console.log(links);
     var promises = links.map(l => fetch(l));
@@ -319,11 +324,11 @@ function runForSummary(names) {
 }
 
 
-function runForTop20(names) {
+function runForTop20(names, apiKey) {
   try{
     var elements = document.getElementsByClassName('toplink');
     var elementsArray = Array.prototype.slice.call(elements);
-    var links = elementsArray.map(e => getUrl(e.href));
+    var links = elementsArray.map(e => getUrl(e.href, apiKey));
     var promises = links.map(l => fetch(l));
     var fetchResponses = Promise.all(promises).then(function(responses) {
         return responses.map(r => r.json());
@@ -351,12 +356,11 @@ function runForTop20(names) {
   }
 }
 
-function runForFront(names) {
+function runForFront(names, apiKey) {
   try{
     var elements = document.getElementsByClassName('fc-item__container');
     var elementsArray = Array.prototype.slice.call(elements);
-    var links = elementsArray.map(e => getUrl(e.querySelectorAll('a')[0].href));
-
+    var links = elementsArray.map(e => getUrl(e.querySelectorAll('a')[0].href, apiKey));
     var promises = links.map(l => fetch(l));
     var fetchResponses = Promise.all(promises).then(function(responses) {
         return responses.map(r => r.json());
@@ -398,34 +402,39 @@ function runForComposerPage(names) {
   writeResultsToResultsBox([articleScore], [articleBreakdown]);
 }
 
-function run(names) {
+function run(names, apiKey) {
   document.body.insertAdjacentHTML('beforeend','<div id="bechdel-overlay"><div id="bechdel-loader"></div></div>');
+  if(apiKey) {
     var pageUrl = window.location.href
     if(pageUrl.includes("gutools.co.uk") && pageUrl.includes("composer")) {
-      runForComposerPage(names);
+      runForComposerPage(names, apiKey);
     } else if (pageUrl.includes(top20) ) {
-      runForTop20(names);
+      runForTop20(names, apiKey);
     } else if (pageUrl.includes(summary) ) {
-      runForSummary(names);
+      runForSummary(names, apiKey);
     } else {
-      var urlPath = getUrl(pageUrl);
+      var urlPath = getUrl(pageUrl, apiKey);
       fetch(urlPath).then(function(response) {
         console.log(response);
           return response.json();
         }).then(function(json) {
           if(json.response.status === 'error'){
-              displayError();
+              displayError(APIerror);
           } else {
             if(json.response.content){
               runForArticlePage(names, json);
             }
             //this means it is a front
             else {
-              runForFront(names);
+              console.log("425" + apiKey)
+              runForFront(names, apiKey);
             }
           }
       });
     }
+  } else {
+    displayError(APIKeyerror);
+  }
 }
 
 
@@ -449,9 +458,14 @@ function addCheckButtonListener(checkPageButton){
       fetch(namesJsonUrl).then(function(response){
         return response.json();
       }).then(function(names){
-        run(names);
+        fetch(configUrl).then(function(response){
+          return response.json();
+        }).then(function(apiKeyJson){
+          var apiKey = apiKeyJson["apiKey"];
+          run(names, apiKey);
       });
     });
+  });
 }
 
 chrome.storage.sync.get("gu_bechdel_test", function(data){
