@@ -93,3 +93,27 @@ Resources:
           Stage: !Ref Stage
           Paths: !Ref BatchOnePaths
           CapiKey: !Ref CapiKey
+
+  BechdelBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "bechdel-bucket"
+      AccessControl: PublicRead
+
+  BechdelBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref BechdelBucket
+      PolicyDocument:
+        Statement:
+          -
+            Sid: Access-to-Guardian-Office-Only
+            Principal: "*"
+            Action: "s3:*"
+            Effect: Deny
+            Resource:
+              - Fn::Join: ["", ["arn:aws:s3:::", {Ref: BechdelBucket}]]
+              - Fn::Join: ["", ["arn:aws:s3:::", {Ref: BechdelBucket}, "/*"]]
+            Condition:
+              StringNotEquals:
+                aws:sourceVpc: "vpc-75538610"
