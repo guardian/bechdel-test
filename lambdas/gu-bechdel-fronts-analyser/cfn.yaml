@@ -24,6 +24,27 @@ Parameters:
     Description: Capi key
     Type: String
     Default: xxx
+  PGUSER:
+    Description: Postgres user
+    Type: String
+    Default: bechdelmaster
+  PGHOST:
+    Description: PGHOST
+    Type: String
+    Default: bechdel-fronts.cii9twl865uw.eu-west-1.rds.amazonaws.com
+  PGPASSWORD:
+    Description: Pghost
+    Type: String
+    Default: root1234
+  PGDATABASE:
+    Description: pg database
+    Type: String
+    Default: fronts
+  PGPORT:
+    Description: postgres ports
+    Type: Number
+    Default: 5432
+
 
 Resources:
   LambdaRole:
@@ -93,6 +114,10 @@ Resources:
           Stage: !Ref Stage
           Paths: !Ref BatchOnePaths
           CapiKey: !Ref CapiKey
+          PGUSER: !Ref PGUSER
+          PGHOST: !Ref PGHOST
+          PGPASSWORD: !Ref PGPASSWORD
+          PGPORT: !Red PGPORT
 
   BechdelConfigBucket:
     Type: AWS::S3::Bucket
