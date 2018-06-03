@@ -5,7 +5,7 @@ const pool = new Pool()
 
 function x() {
     pool.query('SELECT NOW()', (err, res) => {
-    console.log(err, res)
+    console.log(err, res);
     pool.end()
 })
 
