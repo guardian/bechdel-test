@@ -21,7 +21,7 @@
     "kew": "^0.7.0",
     "node-fetch": "^1.7.3",
     "node-riffraff-artefact": "^2.0.1",
-    "pg": "^7.1.2",
+    "pg": "^7.4.3",
     "require": "^2.4.20",
     "uglify-js": "^2.6.0"
   },
