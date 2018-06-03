@@ -1,10 +1,15 @@
-const { Pool, Client } = require('pg');
-var dbUrl = 'tcp://user:psw@localhost:5432/test-db';
-const pool = new Pool()
+var { Pool, Client } = require('pg');
+var pool = new Pool({
+  user: 'bechdelmaster',
+  host: 'bechdel-fronts.cii9twl865uw.eu-west-1.rds.amazonaws.com',
+  database: 'fronts',
+  password: process.env.PGPASSWORD,
+  port: 5432,
+})
 
 
 function x() {
-    pool.query('SELECT NOW()', (err, res) => {
+    pool.query('SELECT count(*) as abc from links', (err, res) => {
     console.log(err, res);
     pool.end()
 })
