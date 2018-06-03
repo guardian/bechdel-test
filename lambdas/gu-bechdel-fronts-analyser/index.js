@@ -1,4 +1,4 @@
-var const { Pool, Client } = require('pg');
+const { Pool, Client } = require('pg');
 var dbUrl = 'tcp://user:psw@localhost:5432/test-db';
 const pool = new Pool()
 
