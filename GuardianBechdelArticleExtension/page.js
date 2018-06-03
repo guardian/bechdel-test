@@ -24,7 +24,6 @@ function selectDistinct(a) {
 }
 
 function getUrl(url, apiKey) {
-  console.log(apiKey);
   var urlPrefix  = 'https://content.guardianapis.com';
   var urlSuffix =   '?api-key=' + apiKey + '&show-fields=all';
   if(url.includes('theguardian.')){
