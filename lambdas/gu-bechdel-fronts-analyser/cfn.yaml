@@ -11,7 +11,8 @@ Parameters:
   BatchOnePaths:
     Description: Batch one paths
     Type: String
-    Default: "/uk,/us,/au,/international,/uk/culture,/us/culture,/au/culture,/uk/business"
+    Default: "/uk,/us,/au,/international"
+
   Stack:
     Description: Stack name
     Type: String
@@ -82,11 +83,11 @@ Resources:
   BatchOneLambdaRule:
     Type: AWS::Events::Rule
     Properties:
-      ScheduleExpression: cron(0 1 * * ? *)
+      ScheduleExpression: cron(0 4 * * ? *)
       Targets:
       - Id: BatchOneLambdaRule
         Arn: !GetAtt [BatchOneLambda, Arn]
-
+        Input:  "{ \"paths\" : \"/uk,/us,/au\"}"
   # Permission to allow the event rule to trigger the flexible querying lambda
   InvokeBatchOneLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -117,7 +118,7 @@ Resources:
           PGUSER: !Ref PGUSER
           PGHOST: !Ref PGHOST
           PGPASSWORD: !Ref PGPASSWORD
-          PGPORT: !Red PGPORT
+          PGPORT: !Ref PGPORT
 
   BechdelConfigBucket:
     Type: AWS::S3::Bucket

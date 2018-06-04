@@ -229,8 +229,12 @@ function requestFrontsFromCAPI() {
 }
 
 
-function x() {
+function x(event) {
   var fetchResponses = requestFrontsFromCAPI();
+  const pathsString = event && event["paths"]
+    ? event["paths"] : process.env.Paths;
+  const pathsArray = pathsString.split(",");
+
 
   fetch(namesJsonUrl).then(function(response){
     return response.json()
@@ -289,5 +293,5 @@ function x() {
 }
 
 exports.handler = function (event, context, callback) {
-    x();
+    x(event);
 }
