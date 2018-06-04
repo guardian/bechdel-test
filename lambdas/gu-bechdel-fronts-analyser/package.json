@@ -14,14 +14,19 @@
   "author": "Jonathan Rankin",
   "license": "ISC",
   "dependencies": {
+    "compromise": "^11.9.0",
     "dynamodb-doc": "^1.0.0",
     "fetch": "^1.1.0",
     "gu-bechdel": "^1.0.4",
     "kew": "^0.7.0",
     "node-fetch": "^1.7.3",
     "node-riffraff-artefact": "^2.0.1",
+    "node-uuid": "^1.4.8",
+    "pg": "^7.4.3",
+    "pg-format": "^1.0.4",
     "require": "^2.4.20",
-    "uglify-js": "^2.6.0"
+    "uglify-js": "^2.6.0",
+    "uuid": "^3.2.1"
   },
   "riffraffFile": "./riff-raff.yaml",
   "cloudformation": "./cfn.yaml"

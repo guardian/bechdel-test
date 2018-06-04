@@ -21,7 +21,7 @@ function selectDistinct(a) {
 
 function getUrl(url) {
   var urlPrefix  = 'https://content.guardianapis.com';
-  var urlSuffix =   '?api-key=cbd423b9-1684-4d52-a9a1-33ea9fecf1bf&show-fields=all';
+  var urlSuffix =   '?api-key=bechdel-batch-lambda&show-fields=all';
   if(url.includes('theguardian.')){
     var matches = url.match(/:\/\/(?:www\.)?(.[^/]+)(.*)/);
     if(matches[2]){
@@ -229,14 +229,6 @@ function writeResultsToResultsBox(aggregateScores, aggregateBreakdowns) {
   aggregateBreakdowns.map(x => x.maleJournos).filter(z => z != '').map(y => maleJournosText += y + ' , ');
 
   var addNameButton = '<br><button style="margin-top:10px;" id="goToNamePage"><i>Name missing/wrong?</i></button>';
-  var namesHtml = '<input id="bechdel-name" type="name" value="" placeholder="Enter name" class="bechdel-name-entry-form" />' +
-    '<select id="bechdel-gender" type="gender">' +
-    '<option disabled selected value> -- select an option -- </option>' +
-    '<option value="MaleName">male</option>'+
-    '<option value="FemaleName">female</option>'+
-    '<option value="NoName">shouldn\'t be a name</option>'+
-    '</select> '+
-    '<input type="submit" value="Submit" id="new-name-entry-form" id="fast"/>';
 
 
   document.getElementById('results').innerHTML = journosText + mentionsText + pronounsText + resultText + bars + '<br><br>' + femaleJournosText  + maleJournosText + femaleMentionsText.substring(0, femaleMentionsText.length - 2) + '<br><br>'+ maleMentionsText.substring(0, maleMentionsText.length - 2) + ' ' + addNameButton;
@@ -244,6 +236,15 @@ function writeResultsToResultsBox(aggregateScores, aggregateBreakdowns) {
   aggregateScores = [];
   var addNameButton = document.getElementById('goToNamePage');
   addNameButton.addEventListener('click', function() {
+    var namesHtml = '<input id="bechdel-name" type="name" value="" placeholder="Enter name" class="bechdel-name-entry-form" />' +
+      '<select id="bechdel-gender" type="gender">' +
+      '<option disabled selected value> -- select an option -- </option>' +
+      '<option value="MaleName">male</option>'+
+      '<option value="FemaleName">female</option>'+
+      '<option value="NoName">shouldn\'t be a name</option>'+
+      '</select> '+
+      '<input type="submit" value="Submit" id="new-name-entry-form" id="fast"/>';
+
       document.getElementById('results').innerHTML = namesHtml;
       var submitButton = document.getElementById('new-name-entry-form');
         submitButton.addEventListener('click', function(e) {
@@ -367,7 +368,7 @@ function runForFront(names) {
             var aggregateBreakdowns = [];
             for(var i = 0; i < json.length; i++){
               console.log("about to process " + i);
-              if(json[i].response.content){
+              if(json[i].response && json[i].response.content){
                 var articleComponents = getArticleComponentsFromCapiResponse(json[i]);
                 var articleBreakdown = getArticleComponentsBreakdown(articleComponents, names);
                 var articleScores = getArticleScores(articleBreakdown);
