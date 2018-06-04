@@ -4,11 +4,7 @@ const format = require('pg-format');
 const bechdelScore = require('gu-bechdel');
 const fetch = require("node-fetch");
 const namesJsonUrl = 'https://s3-eu-west-1.amazonaws.com/bechdel-test-names/names.json'
-const capiKey = process.env.CapiKey;
-const pathsString = process.env.Paths;
-const pathsArray = pathsString.split(",");
 const Q = require('kew');
-var urls = formUrls(pathsArray);
 var nlp = require('compromise');
 var regexPunctuationRemover = /[.,\/#!$%\^&\*;:{}=\-_`~()]/g;
 
@@ -220,7 +216,7 @@ function insertIntoPostgres(item){
   });
 }
 
-function requestFrontsFromCAPI() {
+function requestFrontsFromCAPI(urls) {
     var promises = urls.map(l => fetch(l));
     var fetchResponses = Promise.all(promises).then(function(responses) {
         return responses.map(r => r.json());
@@ -230,11 +226,12 @@ function requestFrontsFromCAPI() {
 
 
 function x(event) {
-  var fetchResponses = requestFrontsFromCAPI();
   const pathsString = event && event["paths"]
     ? event["paths"] : process.env.Paths;
   const pathsArray = pathsString.split(",");
 
+  var urls = formUrls(pathsArray);
+  var fetchResponses = requestFrontsFromCAPI(urls);
 
   fetch(namesJsonUrl).then(function(response){
     return response.json()
