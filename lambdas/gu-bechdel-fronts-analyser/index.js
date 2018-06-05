@@ -1,16 +1,33 @@
 const { Pool, Client } = require('pg');
+const fs = require('fs');
 const uuidv1 = require('uuid/v1');
 const format = require('pg-format');
 const bechdelScore = require('gu-bechdel');
 const fetch = require("node-fetch");
 const namesJsonUrl = 'https://s3-eu-west-1.amazonaws.com/bechdel-test-names/names.json'
 const Q = require('kew');
-const capiKey = process.env.CapiKey;//'bechdel-batch-lambda';
-const language = require('@google-cloud/language');
-const client = new language.LanguageServiceClient();
+const capiKey = process.env.CapiKey;//'bechdel-batch-lambda'
 
 var nlp = require('compromise');
 var regexPunctuationRemover = /[.,\/#!$%\^&\*;:{}=\-_`~()]/g;
+
+function makeJson() {
+  var json = {
+    "type": "service_account",
+    "project_id": "bechdel-entity-1528187465032",
+    "private_key_id": "f838255a34c8097f6781eaa466938e8b4fddf8b0",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDKDC4gko1A7ZtI\nNU+uOo5YOAMwmoErs0y5TooeYD59Krt7cwm98bg9gACT8Gklws30IkTDxnQIu8Kg\nD8KV1T8JTjwJMu3KpZLw5yyIlV/o898GW2rX+mrA9BH26oSTtOEEQv9p6hxwmvne\ny4bEV2M0/9QOc7oXsm+Dsgp/Ct9s32NYMCdORgtVkGSPmHil41smd89yA1jcoIhE\nfVM2rG5YPzv+HBs19ZwdxDGPCgXkmJtqLV1OF+UkrbRy6xz/j4oFeeNQvvfiw6qt\nAm+ODGfj8d2P2QkPCa//fOINs7icU2j5RrzvGNP25A6a5r/akvaXlP6iBt8onuXM\nEsKkd/nbAgMBAAECggEAC4OSdxRwo2nd0jctPfnRtfNKDqzdEG4KUx7Hq+jnT9+S\nQGm3s/oOQ1ioeOpXqDKDUvIitDKM1xja8Xq5AwdurTAUlTIwgXVsoGay/Wq7e8H/\nuhQD3tdDI5E79o86eOaqCS9sOeGlW9OyOCo4K24zcT8JP+Iotfr/mLZjG5jaBcgL\nzNnD6uCgxT0b4VaHXok0XdON50NO2Ns+mRaj2kpydiousI/VRGRfkAjzH8eZUP7p\nWxsgUfE9654H7cpV/fTgaljCzkbLV0EClAMv3Afo0THDky2E9uBDtxB7y5eof4cq\np2pHMjoC0d0LQz3kHy997CVg+bopVVqWHji36dtxOQKBgQDrovGKnlCqis9Uc2lh\nhkWa9jR/a9xEZpoXWYsu8oxkNpOcZgfnTgf9GEyNReI121FB7S4tIiO73nTlmdvX\nuMSaCKdhJuh4wC/TY9YnK1DjetGZx0Ie1HarpeYVEqp6/muMcZ9N5vUePa/Kf7XP\ncPZrNNmKg5yQO/OFeVtwydN+hQKBgQDbgiOU5cdb3abZwHX6LEwM7brOkpbNb5/f\n8wmeKlTOwhAww0aslyMUlsyCrXUYvhFrOw/GyETR6sZlg72lq+M56fXFFNda7f0I\nEctHfUuVBWQNllG2fRPh28iaqZ8Jess+5I7mukRJIC3zfvvUhNJG9lweBIZb7Db2\nZLc7be703wKBgDBP91Ahh45/6WR6SUf6nLjZ9AeQGNhZZQyWimf0yP4fBoLRlJtD\nL3YgDkoE4w2ByxZGR+pvDn6NbNBKjH2dX4npblAIBzACz4t688SSKAKMAv+RkCf8\nDdzBpfv6GMQg9/IStcPmL6mkoi9VofRHR+7RJi01MNuNvy9Fo47rgpZ1AoGAHk/Y\nTgV1BDCVi9hR8lwPnHFvrHr9rBzP/QL4vwilcW/HAJTWu5qbU4qHbzw4wVPt39rm\nENMy/bHn97i7hZc455RxRefc3Uej+2tJoPOibk+yQ1YQrpyTFEtfZkwqFAsK6gJx\n4Vaze02gStGsQOqehwIaMmL5ktQJuvipfOFvcA0CgYEA0ftgCcHX2K5MwWVQNyiD\nV3rPfKbD8nWZJbjIv5RQi/LIDI2Hmdtb86BbKyALufgeRUMOf7VA2Jm+Lrt7fNBY\nmmyCDspMWBoohKOAriXApSH9KRvWkzD1WbIzUmCTyHKUM3v4Okml9tmSjSSsO5DF\nMeN9iyA3FJzqFo6y1GfrThc=\n-----END PRIVATE KEY-----\n",
+    "client_email": "starting-account-1b1tpn7622m7@bechdel-entity-1528187465032.iam.gserviceaccount.com",
+    "client_id": "101356725408225943524",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://accounts.google.com/o/oauth2/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/starting-account-1b1tpn7622m7%40bechdel-entity-1528187465032.iam.gserviceaccount.com"
+  }
+
+  return JSON.stringify(json);
+}
+
 
 function getArticleComponentsBreakdown(articleComponents, names, people) {
 
@@ -174,6 +191,8 @@ function getArticleComponentsFromCapiResponse(json) {
 
 
 function getPeopleInArticle(text) {
+  const language = require('@google-cloud/language');
+  const client = new language.LanguageServiceClient();
   const document = {
       content: text,
       type: 'PLAIN_TEXT',
@@ -191,6 +210,7 @@ function getPeopleInArticle(text) {
 
 
 function getArticleScoreFromPath(path, names, apiKey) {
+
   return fetch(getCAPIUrlFromPath(path, apiKey)).then(function(capiResponse){
     return capiResponse.json();
   }).then(function(capiJson) {
@@ -206,6 +226,7 @@ function getArticleScoreFromPath(path, names, apiKey) {
       return {"breakdown": "error", "score":-1 }
     }
   }).catch(e => {
+    console.log(e);
     return {"breakdown": "error", "score":-1 }
   }).then(function(score){
     return score;
@@ -230,7 +251,7 @@ function insertIntoPostgres(item){
     user: 'bechdelmaster',
     host: 'bechdel-fronts.cii9twl865uw.eu-west-1.rds.amazonaws.com',
     database: 'fronts',
-    password: process.env.PGPASSWORD,
+    password: process.env.PGPASSWORD,//'root1234';
     port: 5432,
   })
   var values = [];
@@ -254,6 +275,17 @@ function requestFrontsFromCAPI(urls) {
 
 
 function x(event) {
+  try{
+    var dir = '/tmp';
+      if (!fs.existsSync(dir)){
+        fs.mkdirSync(dir);
+      }
+      fs.writeFileSync("/tmp/creds.json", makeJson());
+      console.log("all works")
+  }catch (e){
+      console.log("Cannot write file ", e);
+  }
+
   const pathsString = event && event["paths"]
     ? event["paths"] : process.env.Paths;
   const pathsArray = pathsString.split(",");
