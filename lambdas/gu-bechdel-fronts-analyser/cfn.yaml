@@ -45,7 +45,10 @@ Parameters:
     Description: postgres ports
     Type: Number
     Default: 5432
-
+  GOOGLEAPPLICATIONCREDENTIALS:
+    Description: Google GOOGLE_APPLICATION_CREDENTIALS
+    Type: String
+    Default: test
 
 Resources:
   LambdaRole:
@@ -119,6 +122,7 @@ Resources:
           PGHOST: !Ref PGHOST
           PGPASSWORD: !Ref PGPASSWORD
           PGPORT: !Ref PGPORT
+          GOOGLE_APPLICATION_CREDENTIALS: !Ref GOOGLEAPPLICATIONCREDENTIALS
 
   BechdelConfigBucket:
     Type: AWS::S3::Bucket

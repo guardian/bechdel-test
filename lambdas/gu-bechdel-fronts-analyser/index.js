@@ -5,10 +5,14 @@ const bechdelScore = require('gu-bechdel');
 const fetch = require("node-fetch");
 const namesJsonUrl = 'https://s3-eu-west-1.amazonaws.com/bechdel-test-names/names.json'
 const Q = require('kew');
+const capiKey = process.env.CapiKey;//'bechdel-batch-lambda';
+const language = require('@google-cloud/language');
+const client = new language.LanguageServiceClient();
+
 var nlp = require('compromise');
 var regexPunctuationRemover = /[.,\/#!$%\^&\*;:{}=\-_`~()]/g;
 
-function getArticleComponentsBreakdown(articleComponents, names) {
+function getArticleComponentsBreakdown(articleComponents, names, people) {
 
     var totals = {
       headline:'',
@@ -38,8 +42,12 @@ function getArticleComponentsBreakdown(articleComponents, names) {
         }
 
           var body = articleComponents.bodyText;
-          var peopleMetadata = nlp(body, names).people().data();
-          peopleMetadata.forEach(function(person){
+
+
+
+          var nlpPeople = people.map(x => nlp(x.name, names).people().data()).filter(y => y.length !== 0);
+          nlpPeople.forEach(function(p){
+              var person = p[0];
               var nameTexts = person.text.replace(regexPunctuationRemover, '').split(' ');
               var isName = true;
               for(var i = 0; i < nameTexts.length; i++) {
@@ -68,7 +76,6 @@ function getArticleComponentsBreakdown(articleComponents, names) {
             console.log("error: " + e);
             return null;
           }
-
   }
 
 function selectDistinct(a) {
@@ -166,22 +173,43 @@ function getArticleComponentsFromCapiResponse(json) {
 }
 
 
+function getPeopleInArticle(text) {
+  const document = {
+      content: text,
+      type: 'PLAIN_TEXT',
+    };
+
+   return client
+      .analyzeEntities({document: document})
+      .then(results => {
+        return results[0].entities.filter(x => x.type==='PERSON' && x.name != x.name.toLowerCase());
+      })
+      .catch(err => {
+        console.error('ERROR:', err);
+      });
+}
+
+
 function getArticleScoreFromPath(path, names, apiKey) {
   return fetch(getCAPIUrlFromPath(path, apiKey)).then(function(capiResponse){
     return capiResponse.json();
   }).then(function(capiJson) {
     try {
       var components = getArticleComponentsFromCapiResponse(capiJson);
-      var breakdown = getArticleComponentsBreakdown(components, names);
-      var score = getArticleScores(breakdown);
-      var result = {"breakdown": breakdown, "score": score};
-      return result;
+      return getPeopleInArticle(components.bodyText).then(people => {
+        var breakdown = getArticleComponentsBreakdown(components, names, people);
+        var score = getArticleScores(breakdown);
+        var result = {"breakdown": breakdown, "score": score};
+        return result;
+      });
     } catch (e) {
       return {"breakdown": "error", "score":-1 }
     }
   }).catch(e => {
     return {"breakdown": "error", "score":-1 }
-  });
+  }).then(function(score){
+    return score;
+  })
 }
 
 function formUrls(paths) {
@@ -208,7 +236,7 @@ function insertIntoPostgres(item){
   var values = [];
   //console.log(item)
   item.map(x => values.push([uuidv1(), x.time, x.front, x.headline, x.link, x.containerIndex, x.containerName, x.contentIndex, x.maleJournalistCount, x.femaleJournalistCount, x.distinctMales, x.distinctFemales, x.malePronouns, x.femalePronouns, x.femaleScore, x.maleScore, x.totalScore, x.breakdown]));
-  var queryText = format('INSERT INTO links (id, time, front, headline,link,containerIndex, containerName, contentIndex,maleJournalistCount, femaleJournalistCount, distinctMales,distinctFemales,malePronouns, femalePronouns,femaleScore, maleScore,totalScore,breakdown) VALUES %L', values);
+  var queryText = format('INSERT INTO linksTwo (id, time, front, headline,link,containerIndex, containerName, contentIndex,maleJournalistCount, femaleJournalistCount, distinctMales,distinctFemales,malePronouns, femalePronouns,femaleScore, maleScore,totalScore,breakdown) VALUES %L', values);
   //console.log(queryText);
   pool.query(queryText, (err, res) => {
     console.log(err, res);

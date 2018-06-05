@@ -4,6 +4,7 @@
   "description": "A lambda to poll the fronts of the guardian",
   "main": "index.js",
   "scripts": {
+    "postinstall": "npm rebuild grpc --target=6.1.0 --target_arch=x64 --target_platform=linux --target_libc=glibc",
     "test": "make test",
     "riffraff-artefact": "VERBOSE=true ARTEFACT_PATH=$PWD riffraff-artefact"
   },
@@ -14,6 +15,9 @@
   "author": "Jonathan Rankin",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/language": "^1.2.0",
+    "@google-cloud/nodejs-repo-tools": "^2.3.0",
+    "@google-cloud/storage": "^1.7.0",
     "compromise": "^11.9.0",
     "dynamodb-doc": "^1.0.0",
     "fetch": "^1.1.0",
