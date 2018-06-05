@@ -257,7 +257,7 @@ function insertIntoPostgres(item){
   var values = [];
   //console.log(item)
   item.map(x => values.push([uuidv1(), x.time, x.front, x.headline, x.link, x.containerIndex, x.containerName, x.contentIndex, x.maleJournalistCount, x.femaleJournalistCount, x.distinctMales, x.distinctFemales, x.malePronouns, x.femalePronouns, x.femaleScore, x.maleScore, x.totalScore, x.breakdown]));
-  var queryText = format('INSERT INTO linksTwo (id, time, front, headline,link,containerIndex, containerName, contentIndex,maleJournalistCount, femaleJournalistCount, distinctMales,distinctFemales,malePronouns, femalePronouns,femaleScore, maleScore,totalScore,breakdown) VALUES %L', values);
+  var queryText = format('INSERT INTO links (id, time, front, headline,link,containerIndex, containerName, contentIndex,maleJournalistCount, femaleJournalistCount, distinctMales,distinctFemales,malePronouns, femalePronouns,femaleScore, maleScore,totalScore,breakdown) VALUES %L', values);
   //console.log(queryText);
   pool.query(queryText, (err, res) => {
     console.log(err, res);
