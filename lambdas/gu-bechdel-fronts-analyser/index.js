@@ -1,18 +1,35 @@
 const { Pool, Client } = require('pg');
+const fs = require('fs');
 const uuidv1 = require('uuid/v1');
 const format = require('pg-format');
 const bechdelScore = require('gu-bechdel');
 const fetch = require("node-fetch");
 const namesJsonUrl = 'https://s3-eu-west-1.amazonaws.com/bechdel-test-names/names.json'
-const capiKey = process.env.CapiKey;
-const pathsString = process.env.Paths;
-const pathsArray = pathsString.split(",");
 const Q = require('kew');
-var urls = formUrls(pathsArray);
+const capiKey = process.env.CapiKey;
+
 var nlp = require('compromise');
 var regexPunctuationRemover = /[.,\/#!$%\^&\*;:{}=\-_`~()]/g;
 
-function getArticleComponentsBreakdown(articleComponents, names) {
+function makeJson() {
+  var json = {
+    "type": "service_account",
+    "project_id": "bechdel-entity-1528187465032",
+    "private_key_id": "f838255a34c8097f6781eaa466938e8b4fddf8b0",
+    "private_key": process.env.GOOGLECREDS.split('\\n').concat().join('\n'),
+    "client_email": "starting-account-1b1tpn7622m7@bechdel-entity-1528187465032.iam.gserviceaccount.com",
+    "client_id": "101356725408225943524",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://accounts.google.com/o/oauth2/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/starting-account-1b1tpn7622m7%40bechdel-entity-1528187465032.iam.gserviceaccount.com"
+  }
+
+  return JSON.stringify(json);
+}
+
+
+function getArticleComponentsBreakdown(articleComponents, names, people) {
 
     var totals = {
       headline:'',
@@ -42,8 +59,12 @@ function getArticleComponentsBreakdown(articleComponents, names) {
         }
 
           var body = articleComponents.bodyText;
-          var peopleMetadata = nlp(body, names).people().data();
-          peopleMetadata.forEach(function(person){
+
+
+
+          var nlpPeople = people.map(x => nlp(x.name, names).people().data()).filter(y => y.length !== 0);
+          nlpPeople.forEach(function(p){
+              var person = p[0];
               var nameTexts = person.text.replace(regexPunctuationRemover, '').split(' ');
               var isName = true;
               for(var i = 0; i < nameTexts.length; i++) {
@@ -72,7 +93,6 @@ function getArticleComponentsBreakdown(articleComponents, names) {
             console.log("error: " + e);
             return null;
           }
-
   }
 
 function selectDistinct(a) {
@@ -170,22 +190,47 @@ function getArticleComponentsFromCapiResponse(json) {
 }
 
 
+function getPeopleInArticle(text) {
+  const language = require('@google-cloud/language');
+  const client = new language.LanguageServiceClient();
+  const document = {
+      content: text,
+      type: 'PLAIN_TEXT',
+    };
+
+   return client
+      .analyzeEntities({document: document})
+      .then(results => {
+        return results[0].entities.filter(x => x.type==='PERSON' && x.name != x.name.toLowerCase());
+      })
+      .catch(err => {
+        console.error('ERROR:', err);
+      });
+}
+
+
 function getArticleScoreFromPath(path, names, apiKey) {
+
   return fetch(getCAPIUrlFromPath(path, apiKey)).then(function(capiResponse){
     return capiResponse.json();
   }).then(function(capiJson) {
     try {
       var components = getArticleComponentsFromCapiResponse(capiJson);
-      var breakdown = getArticleComponentsBreakdown(components, names);
-      var score = getArticleScores(breakdown);
-      var result = {"breakdown": breakdown, "score": score};
-      return result;
+      return getPeopleInArticle(components.bodyText).then(people => {
+        var breakdown = getArticleComponentsBreakdown(components, names, people);
+        var score = getArticleScores(breakdown);
+        var result = {"breakdown": breakdown, "score": score};
+        return result;
+      });
     } catch (e) {
       return {"breakdown": "error", "score":-1 }
     }
   }).catch(e => {
+    console.log(e);
     return {"breakdown": "error", "score":-1 }
-  });
+  }).then(function(score){
+    return score;
+  })
 }
 
 function formUrls(paths) {
@@ -212,7 +257,7 @@ function insertIntoPostgres(item){
   var values = [];
   //console.log(item)
   item.map(x => values.push([uuidv1(), x.time, x.front, x.headline, x.link, x.containerIndex, x.containerName, x.contentIndex, x.maleJournalistCount, x.femaleJournalistCount, x.distinctMales, x.distinctFemales, x.malePronouns, x.femalePronouns, x.femaleScore, x.maleScore, x.totalScore, x.breakdown]));
-  var queryText = format('INSERT INTO links (id, time, front, headline,link,containerIndex, containerName, contentIndex,maleJournalistCount, femaleJournalistCount, distinctMales,distinctFemales,malePronouns, femalePronouns,femaleScore, maleScore,totalScore,breakdown) VALUES %L', values);
+  var queryText = format('INSERT INTO linkstwo (id, time, front, headline,link,containerIndex, containerName, contentIndex,maleJournalistCount, femaleJournalistCount, distinctMales,distinctFemales,malePronouns, femalePronouns,femaleScore, maleScore,totalScore,breakdown) VALUES %L', values);
   //console.log(queryText);
   pool.query(queryText, (err, res) => {
     console.log(err, res);
@@ -220,7 +265,7 @@ function insertIntoPostgres(item){
   });
 }
 
-function requestFrontsFromCAPI() {
+function requestFrontsFromCAPI(urls) {
     var promises = urls.map(l => fetch(l));
     var fetchResponses = Promise.all(promises).then(function(responses) {
         return responses.map(r => r.json());
@@ -229,8 +274,24 @@ function requestFrontsFromCAPI() {
 }
 
 
-function x() {
-  var fetchResponses = requestFrontsFromCAPI();
+function x(event) {
+  try{
+    var dir = '/tmp';
+      if (!fs.existsSync(dir)){
+        fs.mkdirSync(dir);
+      }
+      fs.writeFileSync("/tmp/creds.json", makeJson());
+      console.log("all works")
+  }catch (e){
+      console.log("Cannot write file ", e);
+  }
+
+  const pathsString = event && event["paths"]
+    ? event["paths"] : process.env.Paths;
+  const pathsArray = pathsString.split(",");
+
+  var urls = formUrls(pathsArray);
+  var fetchResponses = requestFrontsFromCAPI(urls);
 
   fetch(namesJsonUrl).then(function(response){
     return response.json()
@@ -289,5 +350,5 @@ function x() {
 }
 
 exports.handler = function (event, context, callback) {
-    x();
+    x(event);
 }

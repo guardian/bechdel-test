@@ -11,7 +11,8 @@ Parameters:
   BatchOnePaths:
     Description: Batch one paths
     Type: String
-    Default: "/uk,/us,/au,/international,/uk/culture,/us/culture,/au/culture,/uk/business"
+    Default: "/uk,/us,/au,/international"
+
   Stack:
     Description: Stack name
     Type: String
@@ -43,7 +44,10 @@ Parameters:
     Description: postgres ports
     Type: Number
     Default: 5432
-
+  GOOGLEAPPLICATIONCREDENTIALS:
+    Description: Google GOOGLE_APPLICATION_CREDENTIALS
+    Type: String
+    Default: test
 
 Resources:
   LambdaRole:
@@ -81,11 +85,11 @@ Resources:
   BatchOneLambdaRule:
     Type: AWS::Events::Rule
     Properties:
-      ScheduleExpression: cron(0 1 * * ? *)
+      ScheduleExpression: cron(0 16 * * ? *)
       Targets:
       - Id: BatchOneLambdaRule
         Arn: !GetAtt [BatchOneLambda, Arn]
-
+        Input:  "{ \"paths\" : \"/uk,/us,/au,/international,/uk/culture,/us/culture,/au/culture,/uk/business,/us/business\"}"
   # Permission to allow the event rule to trigger the flexible querying lambda
   InvokeBatchOneLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -94,6 +98,100 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: events.amazonaws.com
       SourceArn: !GetAtt [BatchOneLambdaRule, Arn]
+
+  # Event rule that triggers the first lambda every 5 minutes
+  BatchTwoLambdaRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: cron(10 16 * * ? *)
+      Targets:
+      - Id: BatchTwoLambdaRule
+        Arn: !GetAtt [BatchOneLambda, Arn]
+        Input:  "{ \"paths\" : \"/au/business,/uk/money,/uk/commentisfree,/us/commentisfree,/au/commentisfree,/uk/environment,/us/environment,/au/environment\"}"
+  # Permission to allow the event rule to trigger the flexible querying lambda
+  InvokeBatchTwoLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref BatchOneLambda
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt [BatchTwoLambdaRule, Arn]
+
+  # Event rule that triggers the first lambda every 5 minutes
+  BatchThreeLambdaRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: cron(15 16 * * ? *)
+      Targets:
+      - Id: BatchThreeLambdaRule
+        Arn: !GetAtt [BatchOneLambda, Arn]
+        Input:  "{ \"paths\" : \"/uk/technology,/us/technology,/au/technology,/uk/sport,/us/sport,/au/sport,/uk/media,/us/media\"}"
+
+  # Permission to allow the event rule to trigger the flexible querying lambda
+  InvokeBatchThreeLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref BatchOneLambda
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt [BatchThreeLambdaRule, Arn]
+
+  # Event rule that triggers the first lambda every 5 minutes
+  BatchFourLambdaRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: cron(30 16 * * ? *)
+      Targets:
+      - Id: BatchFourLambdaRule
+        Arn: !GetAtt [BatchOneLambda, Arn]
+        Input:  "{ \"paths\" : \"/au/media,/books,/music,/film,/us/film,/au/film,/uk/film\"}"
+
+  # Permission to allow the event rule to trigger the flexible querying lambda
+  InvokeBatchFourLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref BatchOneLambda
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt [BatchFourLambdaRule, Arn]
+
+  # Event rule that triggers the first lambda every 5 minutes
+  BatchFiveLambdaRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: cron(40 16 * * ? *)
+      Targets:
+      - Id: BatchFiveLambdaRule
+        Arn: !GetAtt [BatchOneLambda, Arn]
+        Input:  "{ \"paths\" : \"/artanddesign,/stage,/tv-and-radio,/fashion,/lifeandstyle,/politics,/science\"}"
+
+  # Permission to allow the event rule to trigger the flexible querying lambda
+  InvokeBatchFiveLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref BatchOneLambda
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt [BatchFiveLambdaRule, Arn]
+
+  # Event rule that triggers the first lambda every 5 minutes
+  BatchSixLambdaRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: cron(50 16 * * ? *)
+      Targets:
+      - Id: BatchSixLambdaRule
+        Arn: !GetAtt [BatchOneLambda, Arn]
+        Input:  "{ \"paths\" : \"/football,/travel,/world,/uk-news,/us-news,/australia-news,/observer,/video\"}"
+
+  # Permission to allow the event rule to trigger the flexible querying lambda
+  InvokeBatchSixLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref BatchOneLambda
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt [BatchSixLambdaRule, Arn]
 
   # Lambda that querys the flexible API
   BatchOneLambda:
@@ -116,7 +214,9 @@ Resources:
           PGUSER: !Ref PGUSER
           PGHOST: !Ref PGHOST
           PGPASSWORD: !Ref PGPASSWORD
-          PGPORT: !Red PGPORT
+          PGPORT: !Ref PGPORT
+          GOOGLECREDS: !Ref GOOGLEAPPLICATIONCREDENTIALS
+          GOOGLE_APPLICATION_CREDENTIALS: '/tmp/creds.json'
 
   BechdelConfigBucket:
     Type: AWS::S3::Bucket
