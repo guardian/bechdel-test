@@ -36,7 +36,6 @@ Parameters:
   PGPASSWORD:
     Description: Pghost
     Type: String
-    Default: root1234
   PGDATABASE:
     Description: pg database
     Type: String
@@ -145,7 +144,7 @@ Resources:
       Targets:
       - Id: BatchFourLambdaRule
         Arn: !GetAtt [BatchOneLambda, Arn]
-        Input:  "{ \"paths\" : \"/au/media,/books,/music,/film,/us/film,/au/film,/uk/film,/artanddesign,/stage,/tv-and-radio\"}"
+        Input:  "{ \"paths\" : \"/au/media,/books,/music,/film,/us/film,/au/film,/uk/film\"}"
 
   # Permission to allow the event rule to trigger the flexible querying lambda
   InvokeBatchFourLambdaPermission:
@@ -160,11 +159,11 @@ Resources:
   BatchFiveLambdaRule:
     Type: AWS::Events::Rule
     Properties:
-      ScheduleExpression: cron(35 16 * * ? *)
+      ScheduleExpression: cron(40 16 * * ? *)
       Targets:
       - Id: BatchFiveLambdaRule
         Arn: !GetAtt [BatchOneLambda, Arn]
-        Input:  "{ \"paths\" : \"/fashion,/lifeandstyle,/politics,/science,/football,/travel,/world,/uk-news,/us-news,/australia-news,/observer,/video\"}"
+        Input:  "{ \"paths\" : \"/artanddesign,/stage,/tv-and-radio,/fashion,/lifeandstyle,/politics,/science\"}"
 
   # Permission to allow the event rule to trigger the flexible querying lambda
   InvokeBatchFiveLambdaPermission:
@@ -174,6 +173,25 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: events.amazonaws.com
       SourceArn: !GetAtt [BatchFiveLambdaRule, Arn]
+
+  # Event rule that triggers the first lambda every 5 minutes
+  BatchSixLambdaRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: cron(50 16 * * ? *)
+      Targets:
+      - Id: BatchSixLambdaRule
+        Arn: !GetAtt [BatchOneLambda, Arn]
+        Input:  "{ \"paths\" : \"/football,/travel,/world,/uk-news,/us-news,/australia-news,/observer,/video\"}"
+
+  # Permission to allow the event rule to trigger the flexible querying lambda
+  InvokeBatchSixLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref BatchOneLambda
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt [BatchSixLambdaRule, Arn]
 
   # Lambda that querys the flexible API
   BatchOneLambda:

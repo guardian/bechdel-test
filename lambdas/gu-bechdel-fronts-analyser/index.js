@@ -6,7 +6,7 @@ const bechdelScore = require('gu-bechdel');
 const fetch = require("node-fetch");
 const namesJsonUrl = 'https://s3-eu-west-1.amazonaws.com/bechdel-test-names/names.json'
 const Q = require('kew');
-const capiKey = process.env.CapiKey;//'bechdel-batch-lambda'
+const capiKey = process.env.CapiKey;
 
 var nlp = require('compromise');
 var regexPunctuationRemover = /[.,\/#!$%\^&\*;:{}=\-_`~()]/g;
@@ -251,7 +251,7 @@ function insertIntoPostgres(item){
     user: 'bechdelmaster',
     host: 'bechdel-fronts.cii9twl865uw.eu-west-1.rds.amazonaws.com',
     database: 'fronts',
-    password: process.env.PGPASSWORD,//'root1234';
+    password: process.env.PGPASSWORD,
     port: 5432,
   })
   var values = [];
