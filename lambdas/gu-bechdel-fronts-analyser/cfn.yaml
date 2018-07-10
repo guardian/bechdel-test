@@ -35,7 +35,6 @@ Parameters:
   PGPASSWORD:
     Description: Pghost
     Type: String
-    Default: root1234
   PGDATABASE:
     Description: pg database
     Type: String
