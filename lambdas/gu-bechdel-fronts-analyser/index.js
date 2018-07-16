@@ -350,5 +350,6 @@ function x(event) {
 }
 
 exports.handler = function (event, context, callback) {
-    x(event);
+     //TURN OFF FOR NOW
+    //x(event);
 }
