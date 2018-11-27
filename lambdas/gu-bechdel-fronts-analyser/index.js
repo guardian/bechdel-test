@@ -245,12 +245,14 @@ function requestFrontsFromCAPI() {
     return fetchResponses;
 }
 
+const limit = 0;
+
 function insertIntoPostgres(item){
   const defer = Q.defer();
   const pool = new Pool({
-    user: 'bechdelmaster',
-    host: 'bechdel-fronts.cii9twl865uw.eu-west-1.rds.amazonaws.com',
-    database: 'fronts',
+    user:  process.env.PGUSER,
+    host: process.env.PGHOST,
+    database: process.env.PGDATABASE,
     password: process.env.PGPASSWORD,
     port: 5432,
   })
@@ -288,7 +290,7 @@ function x(event) {
 
   const pathsString = event && event["paths"]
     ? event["paths"] : process.env.Paths;
-  const pathsArray = pathsString.split(",");
+  const pathsArray = "/uk"; //pathsString.split(",");
 
   var urls = formUrls(pathsArray);
   var fetchResponses = requestFrontsFromCAPI(urls);
