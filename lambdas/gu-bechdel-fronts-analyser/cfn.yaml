@@ -8,6 +8,8 @@ Parameters:
     AllowedValues:
     - PROD
     - CODE
+    Default: PROD
+
   BatchOnePaths:
     Description: Batch one paths
     Type: String
@@ -36,6 +38,7 @@ Parameters:
   PGPASSWORD:
     Description: Pghost
     Type: String
+    Default: test1234
   PGDATABASE:
     Description: pg database
     Type: String
