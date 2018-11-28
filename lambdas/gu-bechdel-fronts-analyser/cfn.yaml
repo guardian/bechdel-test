@@ -34,7 +34,7 @@ Parameters:
   PGHOST:
     Description: PGHOST
     Type: String
-    Default: bechdel-fronts.cii9twl865uw.eu-west-1.rds.amazonaws.com
+    Default: bechdel-store-prod.c0gunnrs6vkk.eu-west-1.rds.amazonaws.com
   PGPASSWORD:
     Description: Pghost
     Type: String
@@ -276,6 +276,23 @@ Resources:
       VpcId:
         Ref: VpcId
 
+  BastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: RDS security group rules
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 5432
+        ToPort: 5432
+        SourceSecurityGroupId: sg-1399506e
+      Tags:
+      - Key: Stack
+        Value: !Ref 'Stack'
+      - Key: Stage
+        Value: !Ref 'Stage'
+      VpcId:
+        Ref: VpcId
+
   BechdelStore:
     Type: AWS::RDS::DBInstance
     Properties:
@@ -304,6 +321,9 @@ Resources:
       DBSubnetGroupName: default-vpc-e6e00183
       VPCSecurityGroups:
       - !Ref 'RDSSecurityGroupRules'
+      - !Ref 'BastionSecurityGroup'
+
+
       Tags:
       - Key: Stack
         Value: !Ref 'Stack'

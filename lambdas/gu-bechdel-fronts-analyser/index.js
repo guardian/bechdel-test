@@ -290,7 +290,7 @@ function x(event) {
 
   const pathsString = event && event["paths"]
     ? event["paths"] : process.env.Paths;
-  const pathsArray = "/uk"; //pathsString.split(",");
+  const pathsArray = ["/uk"]; //pathsString.split(",");
 
   var urls = formUrls(pathsArray);
   var fetchResponses = requestFrontsFromCAPI(urls);
