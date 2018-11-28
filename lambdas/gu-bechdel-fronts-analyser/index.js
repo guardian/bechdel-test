@@ -351,6 +351,25 @@ function x(event) {
   });
 }
 
+function test(){
+  const defer = Q.defer();
+  const pool = new Pool({
+    user:  process.env.PGUSER,
+    host: process.env.PGHOST,
+    database: process.env.PGDATABASE,
+    password: process.env.PGPASSWORD,
+    port: 5432,
+  })
+  //console.log(item)
+  var queryText = 'INSERT INTO test (test) values (\'testy\')';
+  //console.log(queryText);
+  pool.query(queryText, (err, res) => {
+    console.log(err, res);
+    pool.end();
+  });
+}
+
 exports.handler = function (event, context, callback) {
-    x(event);
+  test();
+    //x(event);
 }
