@@ -87,6 +87,15 @@ Resources:
               Action:
                 - lambda:InvokeFunction
               Resource: "*"
+        - PolicyName: ec2
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DeleteNetworkInterface
+              Resource: "*"
 
 
   # Event rule that triggers the first lambda every 5 minutes
@@ -214,6 +223,13 @@ Resources:
       Role: !GetAtt [LambdaRole, Arn]
       Runtime: nodejs6.10
       Timeout: 300
+      VpcConfig:
+        SecurityGroupIds:
+          - Ref: RDSSecurityGroupClients
+        SubnetIds:
+          - subnet-179e8063
+          - subnet-cb91ae8d
+          - subnet-a7b74ac2
       Environment:
         Variables:
           Stage: !Ref Stage

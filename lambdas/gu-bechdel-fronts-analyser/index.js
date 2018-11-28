@@ -128,7 +128,7 @@ function getCAPIUrlFromUrl(url, apiKey) {
 
 function getCAPIUrlFromPath(path, apiKey) {
   var urlPrefix  = 'https://content.guardianapis.com/';
-  var urlSuffix =  '?api-key=' + apiKey + '&show-fields=byline,bodyText,headline';
+    var urlSuffix =  '?api-key=' + apiKey + '&show-fields=byline,bodyText,headline';
   return urlPrefix + path + urlSuffix;
 }
 
@@ -216,6 +216,8 @@ function getArticleScoreFromPath(path, names, apiKey) {
   }).then(function(capiJson) {
     try {
       var components = getArticleComponentsFromCapiResponse(capiJson);
+
+
       return getPeopleInArticle(components.bodyText).then(people => {
         var breakdown = getArticleComponentsBreakdown(components, names, people);
         var score = getArticleScores(breakdown);
@@ -267,6 +269,26 @@ function insertIntoPostgres(item){
   });
 }
 
+function insertArticlesIntoPostgres(item){
+  const defer = Q.defer();
+  const pool = new Pool({
+    user:  process.env.PGUSER,
+    host: process.env.PGHOST,
+    database: process.env.PGDATABASE,
+    password: process.env.PGPASSWORD,
+    port: 5432,
+  })
+  var values = [];
+  //console.log(item)
+  item.map(x => values.push([uuidv1(), x.time, x.front, x.link, x.containerIndex, x.containerName, x.contentIndex]));
+  var queryText = format('INSERT INTO articles (id, time, front, link,containerIndex, containerName, contentIndex) VALUES %L', values);
+  //console.log(queryText);
+  pool.query(queryText, (err, res) => {
+    console.log(err, res);
+    pool.end();
+  });
+}
+
 function requestFrontsFromCAPI(urls) {
     var promises = urls.map(l => fetch(l));
     var fetchResponses = Promise.all(promises).then(function(responses) {
@@ -274,6 +296,34 @@ function requestFrontsFromCAPI(urls) {
     });
     return fetchResponses;
 }
+
+// promises.push(getArticleScoreFromPath(content.id, names, capiKey).then(x => {
+//       var breakdown = x.breakdown;
+//       var score = x.score;
+//       if(score != -1){
+//         var linkData = {
+//           time: date,
+//           front: pathsArray[index],
+//           headline: score.headline,
+//           link: content.id,
+//           containerIndex: containerIndex,
+//           containerName: collection.displayName,
+//           contentIndex: contentIndex,
+//           maleJournalistCount: score.maleJournos ,
+//           femaleJournalistCount: score.femaleJournos,
+//           distinctMales: score.distinctMales,
+//           distinctFemales: score.distinctFemales,
+//           malePronouns: score.malePronouns,
+//           femalePronouns: score.femalePronouns,
+//           femaleScore: score.femaleScore,
+//           maleScore: score.maleScore,
+//           totalScore: score.totalScore,
+//           breakdown: '',
+//         };
+//         item.push(linkData);
+//       }
+//       return true;
+//   }));
 
 
 function x(event) {
@@ -304,72 +354,33 @@ function x(event) {
               var item = [];
               var date = new Date();
               var promises = [];
+              var articles = [];
               element.collections.map((collection, containerIndex) => {
                 if(collection.content){
                     collection.content.map((content, contentIndex) => {
 
-                      promises.push(getArticleScoreFromPath(content.id, names, capiKey).then(x => {
-                            var breakdown = x.breakdown;
-                            var score = x.score;
-                            if(score != -1){
-                              var linkData = {
-                                time: date,
-                                front: pathsArray[index],
-                                headline: score.headline,
-                                link: content.id,
-                                containerIndex: containerIndex,
-                                containerName: collection.displayName,
-                                contentIndex: contentIndex,
-                                maleJournalistCount: score.maleJournos ,
-                                femaleJournalistCount: score.femaleJournos,
-                                distinctMales: score.distinctMales,
-                                distinctFemales: score.distinctFemales,
-                                malePronouns: score.malePronouns,
-                                femalePronouns: score.femalePronouns,
-                                femaleScore: score.femaleScore,
-                                maleScore: score.maleScore,
-                                totalScore: score.totalScore,
-                                breakdown: '',
-                              };
-                              item.push(linkData);
-                            }
-                            return true;
-                        }));
-
+                      var articleData = {
+                        time: date,
+                        front: pathsArray[index],
+                        link: content.id,
+                        containerIndex: containerIndex,
+                        containerName: collection.displayName,
+                        contentIndex: contentIndex,
+                      }
+                      articles.push(articleData);
                     });
                 }
               });
-              Promise.all(promises).then(x => {
-                  insertIntoPostgres(item).then(x => {
-                  })
+
+              insertArticlesIntoPostgres(articles).then(x => {
+                  console.log("donee");
               });
-
-
           });
           });
       });
   });
 }
 
-function test(){
-  const defer = Q.defer();
-  const pool = new Pool({
-    user:  process.env.PGUSER,
-    host: process.env.PGHOST,
-    database: process.env.PGDATABASE,
-    password: process.env.PGPASSWORD,
-    port: 5432,
-  })
-  //console.log(item)
-  var queryText = 'INSERT INTO test (test) values (\'testy\')';
-  //console.log(queryText);
-  pool.query(queryText, (err, res) => {
-    console.log(err, res);
-    pool.end();
-  });
-}
-
 exports.handler = function (event, context, callback) {
-  test();
-    //x(event);
+    x(event);
 }
