@@ -275,6 +275,12 @@ Resources:
       GroupDescription: Security group for instances and clients of RDS
       VpcId:
         Ref: VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
   RDSSecurityGroupRules:
     Type: AWS::EC2::SecurityGroup
     Properties:
