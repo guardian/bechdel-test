@@ -1,5 +1,5 @@
 regions: [eu-west-1]
-stacks: [membership]
+stacks: [playground]
 
 templates:
     gu-bechdel-fronts-analyser:
@@ -7,7 +7,7 @@ templates:
       app: gu-bechdel-fronts-analyser
       contentDirectory: gu-bechdel-fronts-analyser
       parameters:
-        bucket: membership-dist
+        bucket: playground-dist
         functionNames: [gu-bechdel-fronts-analyser-BatchOne-]
         fileName: gu-bechdel-fronts-analyser.zip
         prefixStack: false
