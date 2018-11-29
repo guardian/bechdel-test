@@ -355,6 +355,10 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
 
   RDSSecurityGroupRules:
     Type: AWS::EC2::SecurityGroup
@@ -365,23 +369,6 @@ Resources:
         FromPort: 5432
         ToPort: 5432
         SourceSecurityGroupId: !Ref 'RDSSecurityGroupClients'
-      Tags:
-      - Key: Stack
-        Value: !Ref 'Stack'
-      - Key: Stage
-        Value: !Ref 'Stage'
-      VpcId:
-        Ref: BechdelVPC
-
-  BastionSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: RDS security group rules
-      SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: 5432
-        ToPort: 5432
-        SourceSecurityGroupId: sg-1399506e
       Tags:
       - Key: Stack
         Value: !Ref 'Stack'
@@ -419,7 +406,6 @@ Resources:
         Ref: BechdelSubnetGroup
       VPCSecurityGroups:
       - !Ref 'RDSSecurityGroupRules'
-      - !Ref 'BastionSecurityGroup'
       Tags:
       - Key: Stack
         Value: !Ref 'Stack'
@@ -428,5 +414,4 @@ Resources:
     DependsOn:
     - BechdelVPC
     - BechdelSubnetGroup
-    - BastionSecurityGroup
     - RDSSecurityGroupRules
