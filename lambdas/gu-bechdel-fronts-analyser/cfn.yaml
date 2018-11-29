@@ -481,9 +481,8 @@ Resources:
         SecurityGroupIds:
           - Ref: RDSSecurityGroupClients
         SubnetIds:
-          - !Ref PublicSubnetOne
-          - !Ref PublicSubnetTwo
-          - !Ref PublicSubnetThree
+          - !Ref PrivateSubnetOne
+          - !Ref PrivateSubnetTwo
       Environment:
         Variables:
           Stage: !Ref Stage
