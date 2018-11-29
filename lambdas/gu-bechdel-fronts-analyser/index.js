@@ -242,7 +242,10 @@ function formUrls(paths) {
 function requestFrontsFromCAPI() {
     var promises = urls.map(l => fetch(l));
     var fetchResponses = Promise.all(promises).then(function(responses) {
-        return responses.map(r => r.json());
+      return responses.map(r => {
+        console.log(r.json());
+        return r.json();
+      });
     });
     return fetchResponses;
 }
@@ -375,6 +378,7 @@ function x(event) {
               insertArticlesIntoPostgres(articles).then(x => {
                   console.log("donee");
               });
+
           });
           });
       });
