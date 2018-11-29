@@ -710,7 +710,6 @@ Resources:
   BechdelBastionASG:
       Type: AWS::AutoScaling::AutoScalingGroup
       Properties:
-        AvailabilityZones: !GetAZs
         VPCZoneIdentifier:
           - Ref: PublicSubnetOne
           - Ref: PublicSubnetTwo
