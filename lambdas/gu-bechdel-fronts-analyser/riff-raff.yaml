@@ -8,7 +8,7 @@ templates:
       contentDirectory: gu-bechdel-fronts-analyser
       parameters:
         bucket: playground-dist
-        functionNames: [gu-bechdel-fronts-analyser-BatchOne-]
+        functionNames: [gu-bechdel-fronts-analyser-BechdelLambda-]
         fileName: gu-bechdel-fronts-analyser.zip
         prefixStack: false
 
