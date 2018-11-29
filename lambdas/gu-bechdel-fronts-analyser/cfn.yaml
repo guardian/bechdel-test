@@ -52,7 +52,7 @@ Parameters:
   AMI:
     Description: AMI ID
     Type: String
-    Default: ami-0f446d76
+    Default: ami-0ee109f1328f0636e
 
 Mappings:
   Networking:
@@ -580,25 +580,25 @@ Resources:
     - VPCGatewayAttachment
 
   BastionSecurityGroup:
-      Type: AWS::EC2::SecurityGroup
-      Properties:
-        GroupDescription: Enable outbound access to Postgres RDS instance
-        VpcId: !Ref BechdelVPC
-        SecurityGroupIngress:
-          - IpProtocol: tcp
-            FromPort: 22
-            ToPort: 22
-            CidrIp: 77.91.248.0/21
-        SecurityGroupEgress:
-          - IpProtocol: tcp
-            FromPort: 5432
-            ToPort: 5432
-            DestinationSecurityGroupId:
-              Ref: RDSSecurityGroupClients
-          - IpProtocol: tcp
-            FromPort: '443'
-            ToPort: '443'
-            CidrIp: 0.0.0.0/0
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable outbound access to Postgres RDS instance
+      VpcId: !Ref BechdelVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 77.91.248.0/21
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          DestinationSecurityGroupId:
+            Ref: RDSSecurityGroupClients
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
 
 
   AppRole:
@@ -614,80 +614,79 @@ Resources:
             Action:
               - sts:AssumeRole
 
-
-  Type: AWS::IAM::Policy
-  Properties:
-    PolicyDocument:
-      ---
-      Version: '2012-10-17'
-      Statement:
-      - Effect: Allow
-        Action:
-        - ssm:DescribeAssociation
-        - ssm:GetDeployablePatchSnapshotForInstance
-        - ssm:GetDocument
-        - ssm:GetManifest
-        - ssm:GetParameters
-        - ssm:ListAssociations
-        - ssm:ListInstanceAssociations
-        - ssm:PutInventory
-        - ssm:PutComplianceItems
-        - ssm:PutConfigurePackageResult
-        - ssm:UpdateAssociationStatus
-        - ssm:UpdateInstanceAssociationStatus
-        - ssm:UpdateInstanceInformation
-        Resource: "*"
-      - Effect: Allow
-        Action:
-        - ssmmessages:CreateControlChannel
-        - ssmmessages:CreateDataChannel
-        - ssmmessages:OpenControlChannel
-        - ssmmessages:OpenDataChannel
-        Resource: "*"
-      - Effect: Allow
-        Action:
-        - ec2messages:AcknowledgeMessage
-        - ec2messages:DeleteMessage
-        - ec2messages:FailMessage
-        - ec2messages:GetEndpoint
-        - ec2messages:GetMessages
-        - ec2messages:SendReply
-        Resource: "*"
-      - Effect: Allow
-        Action:
-        - cloudwatch:PutMetricData
-        Resource: "*"
-      - Effect: Allow
-        Action:
-        - ec2:DescribeInstanceStatus
-        Resource: "*"
-      - Effect: Allow
-        Action:
-        - ds:CreateComputer
-        - ds:DescribeDirectories
-        Resource: "*"
-      - Effect: Allow
-        Action:
-        - logs:CreateLogGroup
-        - logs:CreateLogStream
-        - logs:DescribeLogGroups
-        - logs:DescribeLogStreams
-        - logs:PutLogEvents
-        Resource: "*"
-      - Effect: Allow
-        Action:
-        - s3:GetBucketLocation
-        - s3:PutObject
-        - s3:GetObject
-        - s3:GetEncryptionConfiguration
-        - s3:AbortMultipartUpload
-        - s3:ListMultipartUploadParts
-        - s3:ListBucket
-        - s3:ListBucketMultipartUploads
-        Resource: "*"
-    PolicyName: SSMPolicy
-    Roles:
-      - Ref: AppRole
+  SSMPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      Roles:
+        - Ref: AppRole
+      PolicyName: SSMPolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - ssm:DescribeAssociation
+          - ssm:GetDeployablePatchSnapshotForInstance
+          - ssm:GetDocument
+          - ssm:GetManifest
+          - ssm:GetParameters
+          - ssm:ListAssociations
+          - ssm:ListInstanceAssociations
+          - ssm:PutInventory
+          - ssm:PutComplianceItems
+          - ssm:PutConfigurePackageResult
+          - ssm:UpdateAssociationStatus
+          - ssm:UpdateInstanceAssociationStatus
+          - ssm:UpdateInstanceInformation
+          Resource: "*"
+        - Effect: Allow
+          Action:
+          - ssmmessages:CreateControlChannel
+          - ssmmessages:CreateDataChannel
+          - ssmmessages:OpenControlChannel
+          - ssmmessages:OpenDataChannel
+          Resource: "*"
+        - Effect: Allow
+          Action:
+          - ec2messages:AcknowledgeMessage
+          - ec2messages:DeleteMessage
+          - ec2messages:FailMessage
+          - ec2messages:GetEndpoint
+          - ec2messages:GetMessages
+          - ec2messages:SendReply
+          Resource: "*"
+        - Effect: Allow
+          Action:
+          - cloudwatch:PutMetricData
+          Resource: "*"
+        - Effect: Allow
+          Action:
+          - ec2:DescribeInstanceStatus
+          Resource: "*"
+        - Effect: Allow
+          Action:
+          - ds:CreateComputer
+          - ds:DescribeDirectories
+          Resource: "*"
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:DescribeLogGroups
+          - logs:DescribeLogStreams
+          - logs:PutLogEvents
+          Resource: "*"
+        - Effect: Allow
+          Action:
+          - s3:GetBucketLocation
+          - s3:PutObject
+          - s3:GetObject
+          - s3:GetEncryptionConfiguration
+          - s3:AbortMultipartUpload
+          - s3:ListMultipartUploadParts
+          - s3:ListBucket
+          - s3:ListBucketMultipartUploads
+          Resource: "*"
 
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
