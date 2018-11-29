@@ -49,6 +49,10 @@ Parameters:
     Description: Google GOOGLE_APPLICATION_CREDENTIALS
     Type: String
     Default: test
+  AMI:
+    Description: AMI ID
+    Type: String
+    Default: ami-0f446d76
 
 Mappings:
   Networking:
@@ -491,6 +495,7 @@ Resources:
           PGUSER: !Ref PGUSER
           PGHOST: !Ref PGHOST
           PGPASSWORD: !Ref PGPASSWORD
+          PGDATABASE: !Ref PGDATABASE
           PGPORT: !Ref PGPORT
           GOOGLECREDS: !Ref GOOGLEAPPLICATIONCREDENTIALS
           GOOGLE_APPLICATION_CREDENTIALS: '/tmp/creds.json'
@@ -573,3 +578,86 @@ Resources:
     - RDSSecurityGroupRules
     - InternetGateway
     - VPCGatewayAttachment
+
+  BastionSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Enable outbound access to Postgres RDS instance
+        VpcId: !Ref VpcId
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 22
+            ToPort: 22
+            CidrIp: 77.91.248.0/21
+        SecurityGroupEgress:
+          - IpProtocol: tcp
+            FromPort: 5432
+            ToPort: 5432
+            DestinationSecurityGroupId: !FindInMap [ Constants, RDSClientsSecurityGroupIdCode, Value ]
+          - IpProtocol: tcp
+            FromPort: 5432
+            ToPort: 5432
+            DestinationSecurityGroupId: !FindInMap [ Constants, RDSClientsSecurityGroupIdProd, Value ]
+          - IpProtocol: tcp
+            FromPort: '443'
+            ToPort: '443'
+            CidrIp: 0.0.0.0/0
+
+
+  AppRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: "/"
+      ManagedPolicyArns: ["arn:aws:iam::865473395570:policy/guardian-ec2-role-for-ssm"]
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+        - !Ref AppRole
+
+  LaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: !Ref AMI
+      SecurityGroups:
+        - Ref: BastionSecurityGroup
+        - Ref: RDSSecurityGroupClients
+      InstanceType: t2.nano
+      IamInstanceProfile: !Ref InstanceProfile
+      AssociatePublicIpAddress: true
+
+
+  BechdelBastionASG:
+      Type: AWS::AutoScaling::AutoScalingGroup
+      Properties:
+        AvailabilityZones: !GetAZs
+        VPCZoneIdentifier:
+          - Ref: PublicSubnetOne
+          - Ref: PublicSubnetTwo
+          - Ref: PublicSubnetOne
+        LaunchConfigurationName: !Ref LaunchConfig
+        MinSize: 1
+        MaxSize: 2
+        DesiredCapacity: 1
+        HealthCheckType: EC2
+        HealthCheckGracePeriod: 300
+        Tags:
+          - Key: Stack
+            Value: !Ref Stack
+            PropagateAtLaunch: true
+          - Key: App
+            Value: !Ref App
+            PropagateAtLaunch: true
+          - Key: Stage
+            Value: !Ref Stage
+            PropagateAtLaunch: true
